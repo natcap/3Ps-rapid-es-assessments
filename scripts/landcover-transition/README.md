@@ -13,9 +13,9 @@ creates the following three outputs:
 
 2. **Transition raster** (tif)
 
-    a raster of new integer values that represent transitions.
+    a raster of new integer values that represent transitions. The transition
+    raster has the following special cases:
 
-    The transition raster has the following special cases:
     - nodata -> nodata - should output nodata
     - x -> x - unchanged values should output the same new class
     - x -> nodata  - should output a new class value
