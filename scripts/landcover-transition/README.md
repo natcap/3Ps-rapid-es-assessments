@@ -16,10 +16,10 @@ creates the following three outputs:
     a raster of new integer values that represent transitions.
 
     The transition raster has the following special cases:
-    # nodata -> nodata - should output nodata
-    # x -> x - unchanged values should output the same new class
-    # x -> nodata  - should output a new class value
-    # nodata -> y - should output a new class value
+    - nodata -> nodata - should output nodata
+    - x -> x - unchanged values should output the same new class
+    - x -> nodata  - should output a new class value
+    - nodata -> y - should output a new class value
 
 3. **Transition raster table** (CSV)
 
