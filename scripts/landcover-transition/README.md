@@ -3,14 +3,17 @@ This python utility script runs a transition analyses on two landcover rasters.
 Given a transition _from_ raster and a transition _to_ raster the script
 creates the following three outputs:
 
-**Transition matrix** (CSV) - a matrix with "From/To" rows and columns
+1. **Transition matrix** (CSV)
+
+    a matrix with "From/To" rows and columns
     where the row keys represent the "from" raster classes, the column
     keys represent the "to" raster classes, and the values are the
     counts for how many times the transition occurs. NoData values are
     included in the row, column keys.
 
-**Transition raster** (tif) - a raster of new integer values that
-    represent transitions.
+2. **Transition raster** (tif)
+
+    a raster of new integer values that represent transitions.
 
     The transition raster has the following special cases:
     # nodata -> nodata - should output nodata
@@ -18,10 +21,12 @@ creates the following three outputs:
     # x -> nodata  - should output a new class value
     # nodata -> y - should output a new class value
 
-**Transition raster table** (CSV) - an accompanying table to the transition
-    raster that has two columns, "Transition Class" and "Transition".
-    "Transition Class" indicates the new class given the unique
-    transition which is described in the "Transition" column.
+3. **Transition raster table** (CSV)
+
+    an accompanying table to the transition raster that has two columns,
+    "Transition Class" and "Transition".  "Transition Class" indicates the new
+    class given the unique transition which is described in the "Transition"
+    column.
 
 ## Dependencies and installation
 This scripts relies on the following libraries:
@@ -52,9 +57,10 @@ For this example let's assume you are on the command line in the folder
 `user/workspace/transitions/` with the LULC rasters.
 
 To learn about how to run the script you can use the `--help` flag.
-`  >> python gef-rapid-es-assessments/scripts/landcover-transitions/lulc-transition.py --help`
 
 ```bash
+>> python gef-rapid-es-assessments/scripts/landcover-transitions/lulc-transition.py --help
+  
 usage: lulc-transition.py [-h] [-f FROM] [-t TO] [-o OUTPUT_DIRECTORY]
 
 Given two landcover rasters creates a transition matrix table and transition
@@ -67,6 +73,8 @@ options:
   -o OUTPUT_DIRECTORY, --output-directory OUTPUT_DIRECTORY
                         Path to a directory to save the outputs of this script.
 ```
+
 To run the script and output into `user/workspace/transitions`:
+
 `  >> python gef-rapid-es-assessments/scripts/landcover-transitions/lulc-transition.py -f transitions/LULC-before.tif -t transitions/LULC-after.tif -o transitions`
 
