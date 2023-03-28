@@ -39,7 +39,7 @@ To set up a conda environment via the command line:
 ```
   >> conda create -p ./transition-env -c conda-forge python=3.10
   >> conda activate ./transition-env
-  >> conda install pygeoprocessing
+  >> conda install -c conda-forge pygeoprocessing
 ```
 Once the environment is set up download the script by cloning the repository.
 
