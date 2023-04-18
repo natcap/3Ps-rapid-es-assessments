@@ -1,4 +1,4 @@
-.PHONY: clean download-tiles all
+.PHONY: clean download-tiles all verify-tiles
 
 TILESDIR=tiles
 
@@ -15,13 +15,13 @@ download-tiles: tiles-download-urls.txt
 	unzip -o $(TILESDIR)/*.zip
 
 tiles-checksums.sha256:
-	sha256sum $(TILESDIR)/*.tif > tiles-checksums.sha256
+	sha256sum $(TILESDIR)/*.tif > $@
 
 verify-tiles: tiles-checksums.sha256
 	sha256sum --check tiles-checksums.sha256
 
-tiles.vrt:
-	gdalbuildvrt $(TILESDIR)/*.tif
+hydrosheds-v1.1-3s-voidfilled.vrt:
+	gdalbuildvrt $@ $(TILESDIR)/*.tif
 
 all: download-tiles tiles-checksums.sha256
 
