@@ -18,7 +18,7 @@ hydrosheds-v1.1-3s-voidfilled-online.vrt: vsi-tiles.txt
 
 download-tiles: tiles-download-urls.txt
 	wget --no-clobber --tries=20 --input-file=tiles-download-urls.txt --directory-prefix=$(TILESDIR)/
-	unzip -o '$(TILESDIR)/*.zip'
+	unzip -o -d $(TILESDIR) '$(TILESDIR)/*.zip' '*.tif'
 
 tiles-checksums.sha256:
 	sha256sum $(TILESDIR)/*.tif > $@
