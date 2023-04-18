@@ -23,6 +23,12 @@ verify-tiles: tiles-checksums.sha256
 hydrosheds-v1.1-3s-voidfilled.vrt:
 	gdalbuildvrt $@ $(TILESDIR)/*.tif
 
+hydrosheds-v1.1-3s-voidfilled.tif:
+	gdal_translate -of GTiff -co TILED=YES -co COMPRESS=LZW hydrosheds-v1.1-3s-voidfilled.vrt
+
+hydrosheds-v1.1-3s-voidfilled.tif.ovr: hydrosheds-v1.1-3s-voidfilled.tif
+	gdaladdo -ro -clean $@
+
 all: download-tiles tiles-checksums.sha256
 
 clean:
