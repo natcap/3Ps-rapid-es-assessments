@@ -31,7 +31,7 @@ local-tiles.vrt:
 	gdalbuildvrt -input_file_list local-tiles.txt $@
 
 hydrosheds-v1.1-3s-voidfilled.tif: local-tiles.vrt
-	gdal_translate -of GTiff -co TILED=YES -co COMPRESS=LZW local-tiles.vrt $@
+	GDAL_CACHEMAX=4096 gdal_translate -of GTiff -co TILED=YES -co COMPRESS=LZW local-tiles.vrt $@
 
 hydrosheds-v1.1-3s-voidfilled.tif.ovr: hydrosheds-v1.1-3s-voidfilled.tif
 	gdaladdo -ro -clean $@
