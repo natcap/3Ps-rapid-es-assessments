@@ -34,7 +34,7 @@ hydrosheds-v1.1-3s-voidfilled.tif: local-tiles.vrt
 	GDAL_CACHEMAX=4096 gdal_translate -of GTiff -co BIGTIFF=YES -co TILED=YES -co COMPRESS=LZW local-tiles.vrt $@
 
 hydrosheds-v1.1-3s-voidfilled.tif.ovr: hydrosheds-v1.1-3s-voidfilled.tif
-	gdaladdo -ro -clean $@
+	gdaladdo -ro -clean $(subst .ovr,,$@)
 
 all: download-tiles tiles-checksums.sha256
 
