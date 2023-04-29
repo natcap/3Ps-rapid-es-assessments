@@ -70,7 +70,6 @@ def calculate_awc(
         return awc
 
 
-    # TODO: build overviews as well before upload.
     # TODO: build in some warnings if the values are outside of the expected
     # range of 0-100 (or 0-1 if we've already divided by 100).
     driver_opts = ('GTIFF', (
@@ -80,6 +79,7 @@ def calculate_awc(
     pygeoprocessing.geoprocessing.raster_calculator(
         raster_paths, _calculate, target_awc_path,
         gdal.GDT_Float32, float(NODATA_FLOAT32))
+
     pygeoprocessing.geoprocessing.build_overviews(
         target_awc_path, internal=False, resample_method='near',
         overwrite=True, levels='auto')
