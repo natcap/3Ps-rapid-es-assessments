@@ -25,7 +25,7 @@ endif
 $(DOWNLOADS):
 	mkdir $@
 
-$(DOWNLOADS)/%:
+$(DOWNLOADS)/%: $(DOWNLOADS)
 	wget --tries=20 $(ISRIC_BASEURL)/$(notdir $@) --directory-prefix=$(DOWNLOADS)
 
 download: $(ALLFILES)
@@ -33,5 +33,5 @@ download: $(ALLFILES)
 verify: $(CHECKSUM_FILE)
 	cd $(DOWNLOADS) && sha265sum --check checksum.sha256.txt
 
-awc.tif:
+awc.tif: $(ALLFILES)
 	$(CONTAINER_CMD) python3 build-awc.py --cache-dir=$(DOWNLOADS) $@
