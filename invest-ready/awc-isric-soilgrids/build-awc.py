@@ -5,7 +5,6 @@ import logging
 import os
 import shutil
 
-import appdirs
 import numpy
 import pygeoprocessing
 import requests
@@ -87,8 +86,7 @@ def calculate_awc(
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '--cache-dir', default=appdirs.user_cache_dir('isric-awc', 'natcap'))
+    parser.add_argument('--cache-dir', default='downloads')
     parser.add_argument('target_awc')
 
     parsed_args = parser.parse_args()
