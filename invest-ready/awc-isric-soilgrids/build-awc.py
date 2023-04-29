@@ -68,12 +68,11 @@ def calculate_awc(
         ) / 100
         return awc
 
-
     # TODO: build in some warnings if the values are outside of the expected
     # range of 0-100 (or 0-1 if we've already divided by 100).
     driver_opts = ('GTIFF', (
-    'TILED=YES', 'BIGTIFF=YES', 'COMPRESS=LZW',
-    'BLOCKXSIZE=256', 'BLOCKYSIZE=256', 'PREDICTOR=1', 'NUM_THREADS=4'))
+        'TILED=YES', 'BIGTIFF=YES', 'COMPRESS=LZW',
+        'BLOCKXSIZE=256', 'BLOCKYSIZE=256', 'PREDICTOR=1', 'NUM_THREADS=4'))
     raster_paths = [(path, 1) for path in rasters]
     pygeoprocessing.geoprocessing.raster_calculator(
         raster_paths, _calculate, target_awc_path,
