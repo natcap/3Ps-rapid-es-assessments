@@ -42,10 +42,10 @@ def calculate_awc(
         soil_depth_100cm_path,
         soil_depth_200cm_path,
     ]
-    expected_nodata = 255
+    soils_nodata = 255
     nodatas = [
         pygeoprocessing.get_raster_info(path)['nodata'][0] for path in rasters]
-    assert nodatas == [expected_nodata]*len(nodatas)
+    assert nodatas == [soils_nodata]*len(nodatas)
 
     def _calculate(soil_depth_0cm, soil_depth_5cm, soil_depth_15cm,
                    soil_depth_30cm, soil_depth_60cm, soil_depth_100cm,
@@ -56,7 +56,7 @@ def calculate_awc(
         for array in [soil_depth_0cm, soil_depth_5cm, soil_depth_15cm,
                       soil_depth_30cm, soil_depth_60cm, soil_depth_100cm,
                       soil_depth_200cm]:
-            valid_mask &= (array != 255)
+            valid_mask &= (array != soils_nodata)
 
         awc[valid_mask] = ((1/200) * (1/2) * (
             ((5 - 0) * (soil_depth_0cm[valid_mask] + soil_depth_5cm[valid_mask])) +
