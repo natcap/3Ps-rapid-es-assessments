@@ -1,17 +1,13 @@
 .PHONY: download verify
 DOWNLOADS := downloads
-ISRIC_BASEURL :=  https://files.isric.org/soilgrids/former/2017-03-10/data
 CHECKSUM_FILE = $(DOWNLOADS)/checksum.sha256.txt
-ALLFILES := $(CHECKSUM_FILE) \
-	        $(DOWNLOADS)/AWCh1_M_sl1_250m_ll.tif \
-	        $(DOWNLOADS)/AWCh1_M_sl2_250m_ll.tif \
-	        $(DOWNLOADS)/AWCh1_M_sl3_250m_ll.tif \
-	        $(DOWNLOADS)/AWCh1_M_sl4_250m_ll.tif \
-	        $(DOWNLOADS)/AWCh1_M_sl5_250m_ll.tif \
-	        $(DOWNLOADS)/AWCh1_M_sl6_250m_ll.tif \
-	        $(DOWNLOADS)/AWCh1_M_sl7_250m_ll.tif
+ISRIC_BASEURL :=  https://files.isric.org/soilgrids/former/2017-03-10/data
 CONTAINER := ghcr.io/natcap/devstack
 CONTAINER_DIGEST := sha256:961c937a55ac8ff99219afeffe0f8509e4f142061cd3302c8133dfbe94574657
+
+# Use bash numeral expansion here to list out all 7 layers we need from ISRIC
+ALLFILES := $(CHECKSUM_FILE) \
+	        $(shell echo $(DOWNLOADS)/AWCh1_M_sl{1..7}_250m_ll.tif)
 
 # To force make to use singularity: make USE_SINGULARITY=1 awc.tif
 USE_SINGULARITY=0
