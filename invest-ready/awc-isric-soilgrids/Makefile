@@ -13,6 +13,7 @@ ALLFILES := $(CHECKSUM_FILE) \
 CONTAINER := ghcr.io/natcap/devstack
 CONTAINER_DIGEST := sha256:961c937a55ac8ff99219afeffe0f8509e4f142061cd3302c8133dfbe94574657
 
+# To force make to use singularity: make USE_SINGULARITY=1 awc.tif
 USE_SINGULARITY=0
 ifeq ($(USE_SINGULARITY), 1)
 	CONTAINER_CMD := singularity run docker://$(CONTAINER)@$(CONTAINER_DIGEST)
