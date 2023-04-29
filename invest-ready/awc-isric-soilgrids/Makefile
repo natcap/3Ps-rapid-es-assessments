@@ -5,7 +5,9 @@ ISRIC_BASEURL :=  https://files.isric.org/soilgrids/former/2017-03-10/data
 CONTAINER := ghcr.io/natcap/devstack
 CONTAINER_DIGEST := sha256:961c937a55ac8ff99219afeffe0f8509e4f142061cd3302c8133dfbe94574657
 
-# Use bash numeral expansion here to list out all 7 layers we need from ISRIC
+# Use bash brace expansion here to list out all 7 layers we need from ISRIC
+# Force shell to use bash to enable brace expansion.
+SHELL := bash
 ALLFILES := $(CHECKSUM_FILE) \
 	        $(shell echo $(DOWNLOADS)/AWCh1_M_sl{1..7}_250m_ll.tif)
 
