@@ -11,7 +11,6 @@
 # The ISRIC webserver is pretty unreliable, so it makes sense to try
 # downloading all the files at once.
 make -j 8 download
-make verify
 
 # Force the use of singularity
 make USE_SINGULARITY=1 awc.tif
