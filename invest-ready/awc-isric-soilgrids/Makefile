@@ -26,13 +26,12 @@ $(DOWNLOADS):
 	mkdir $@
 
 $(CHECKSUM_FILE):
-	wget $(WGET_ARGS) --directory-prefix=$(DOWNLOADS) $(ISRIC_BASEURL)/$(notdir $@)
+	wget $(WGET_ARGS) -O $@ $(ISRIC_BASEURL)/$(notdir $@)
 
 # If the raster isn't already present and verifiable, grab it.
 $(DOWNLOADS)/%: $(DOWNLOADS) $(CHECKSUM_FILE)
-	cd $(DOWNLOADS) \
-		&& grep $(notdir $@)$$ $(notdir $(CHECKSUM_FILE)) | sha256sum --check --status \
-		|| rm -f $(notdir $@); wget $(WGET_ARGS) $(ISRIC_BASEURL)/$(notdir $@)
+	cd $(DOWNLOADS) && grep $(notdir $@)$$ $(notdir $(CHECKSUM_FILE)) | sha256sum --check --status
+	wget $(WGET_ARGS) -O $@ $(ISRIC_BASEURL)/$(notdir $@)
 
 download: $(ALLFILES)
 
