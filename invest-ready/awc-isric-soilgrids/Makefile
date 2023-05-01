@@ -1,4 +1,3 @@
-.PHONY: download verify
 DOWNLOADS := downloads
 CHECKSUM_FILE = $(DOWNLOADS)/checksum.sha256.txt
 ISRIC_BASEURL :=  https://files.isric.org/soilgrids/former/2017-03-10/data
@@ -25,6 +24,9 @@ endif
 $(DOWNLOADS):
 	mkdir $@
 
+.PHONY: download
+download: $(ALLFILES)
+
 $(CHECKSUM_FILE):
 	wget $(WGET_ARGS) -O $@ $(ISRIC_BASEURL)/$(notdir $@)
 
@@ -33,7 +35,9 @@ $(DOWNLOADS)/%: $(DOWNLOADS) $(CHECKSUM_FILE)
 	cd $(DOWNLOADS) && grep $(notdir $@)$$ $(notdir $(CHECKSUM_FILE)) | sha256sum --check --status
 	wget $(WGET_ARGS) -O $@ $(ISRIC_BASEURL)/$(notdir $@)
 
-download: $(ALLFILES)
-
 awc.tif: $(ALLFILES)
 	$(CONTAINER_CMD) python3 build-awc.py --cache-dir=$(DOWNLOADS) $@
+
+.PHONY: clean
+clean:
+	rm -rf $(DOWNLOADS)
