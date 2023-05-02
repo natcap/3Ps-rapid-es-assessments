@@ -96,7 +96,7 @@ def main():
 
     files_not_found = []
     local_soil_rasters = []
-    for soil_depth, soil_rastername in ISRIC_2017_AWCH1_RASTERS.values():
+    for soil_depth, soil_rastername in ISRIC_2017_AWCH1_RASTERS.items():
         local_file = os.path.join(cache_dir, soil_rastername)
         if not os.path.exists(local_file):
             LOGGER.warning(
