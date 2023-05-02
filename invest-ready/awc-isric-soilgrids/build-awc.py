@@ -1,17 +1,13 @@
 import argparse
-import hashlib
-import http.client
 import logging
 import os
-import shutil
 
 import numpy
 import pygeoprocessing
-import requests
-import urllib3.exceptions
 from osgeo import gdal
 
 logging.basicConfig(level=logging.INFO)
+LOGGER = logging.getLogger(os.path.basename(__file__))
 gdal.SetCacheMax(2**32)
 NODATA_FLOAT32 = numpy.finfo(numpy.float32).min
 ISRIC_2017_AWCH1_RASTERS = {
@@ -23,6 +19,7 @@ ISRIC_2017_AWCH1_RASTERS = {
     '100cm': 'AWCh1_M_sl6_250m_ll.tif',
     '200cm': 'AWCh1_M_sl7_250m_ll.tif',
 }
+
 
 def calculate_awc(
         soil_depth_0cm_path,
@@ -76,7 +73,8 @@ def calculate_awc(
     raster_paths = [(path, 1) for path in rasters]
     pygeoprocessing.geoprocessing.raster_calculator(
         raster_paths, _calculate, target_awc_path,
-        gdal.GDT_Float32, float(NODATA_FLOAT32))
+        gdal.GDT_Float32, float(NODATA_FLOAT32),
+        raster_drive_creation_tuple=driver_opts)
 
     pygeoprocessing.geoprocessing.build_overviews(
         target_awc_path, internal=False, resample_method='near',
