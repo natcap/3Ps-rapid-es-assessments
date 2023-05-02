@@ -49,20 +49,20 @@ def calculate_awc(
                    soil_depth_200cm):
         awc = numpy.full(soil_depth_0cm.shape, NODATA_FLOAT32,
                          dtype=numpy.float32)
-        valid_mask = numpy.ones(soil_depth_0cm.shape, dtype=bool)
+        valid = numpy.ones(soil_depth_0cm.shape, dtype=bool)
         for array in [soil_depth_0cm, soil_depth_5cm, soil_depth_15cm,
                       soil_depth_30cm, soil_depth_60cm, soil_depth_100cm,
                       soil_depth_200cm]:
-            valid_mask &= (array != soils_nodata)
+            valid &= (array != soils_nodata)
 
-        awc[valid_mask] = ((1/200) * (1/2) * (
-            ((5 - 0) * (soil_depth_0cm[valid_mask] + soil_depth_5cm[valid_mask])) +
-            ((15 - 5) * (soil_depth_5cm[valid_mask] + soil_depth_15cm[valid_mask])) +
-            ((30 - 15) * (soil_depth_15cm[valid_mask] + soil_depth_30cm[valid_mask])) +
-            ((60 - 30) * (soil_depth_30cm[valid_mask] + soil_depth_60cm[valid_mask])) +
-            ((100 - 60) * (soil_depth_60cm[valid_mask] + soil_depth_100cm[valid_mask])) +
-            ((200 - 100) * (soil_depth_100cm[valid_mask] + soil_depth_200cm[valid_mask])))
-        ) / 100
+        awc[valid] = ((1/200) * (1/2) * (
+            ((5 - 0) * (soil_depth_0cm[valid] + soil_depth_5cm[valid])) +
+            ((15 - 5) * (soil_depth_5cm[valid] + soil_depth_15cm[valid])) +
+            ((30 - 15) * (soil_depth_15cm[valid] + soil_depth_30cm[valid])) +
+            ((60 - 30) * (soil_depth_30cm[valid] + soil_depth_60cm[valid])) +
+            ((100 - 60) * (soil_depth_60cm[valid] + soil_depth_100cm[valid])) +
+            ((200 - 100) * (soil_depth_100cm[valid] + soil_depth_200cm[valid]))
+        )) / 100
         return awc
 
     # TODO: build in some warnings if the values are outside of the expected
