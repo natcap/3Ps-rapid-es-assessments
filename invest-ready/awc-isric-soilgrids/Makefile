@@ -32,8 +32,8 @@ $(CHECKSUM_FILE):
 
 # If the raster isn't already present and verifiable, grab it.
 $(DOWNLOADS)/%: $(DOWNLOADS) $(CHECKSUM_FILE)
-	cd $(DOWNLOADS) && grep $(notdir $@)$$ $(notdir $(CHECKSUM_FILE)) | sha256sum --check --status
-	wget $(WGET_ARGS) -O $@ $(ISRIC_BASEURL)/$(notdir $@)
+	(cd $(DOWNLOADS) && grep $(notdir $@)$$ $(notdir $(CHECKSUM_FILE)) | sha256sum --check --status) \
+	   	|| wget $(WGET_ARGS) -O $@ $(ISRIC_BASEURL)/$(notdir $@)
 
 awc.tif: $(ALLFILES)
 	$(CONTAINER_CMD) python3 build-awc.py --cache-dir=$(DOWNLOADS) $@
