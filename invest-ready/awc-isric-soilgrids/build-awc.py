@@ -74,7 +74,7 @@ def calculate_awc(
     pygeoprocessing.geoprocessing.raster_calculator(
         raster_paths, _calculate, target_awc_path,
         gdal.GDT_Float32, float(NODATA_FLOAT32),
-        raster_drive_creation_tuple=driver_opts)
+        raster_driver_creation_tuple=driver_opts)
 
     pygeoprocessing.geoprocessing.build_overviews(
         target_awc_path, internal=False, resample_method='near',
