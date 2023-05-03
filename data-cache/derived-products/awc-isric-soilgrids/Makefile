@@ -9,7 +9,7 @@ WGET_ARGS := --tries=20 --random-wait --retry-connrefused --random-wait
 # Force shell to use bash to enable brace expansion.
 SHELL := bash
 ALLFILES := $(CHECKSUM_FILE) \
-	        $(shell echo $(DOWNLOADS)/AWCh1_M_sl{1..7}_250m_ll.tif)
+	        $(shell echo $(DOWNLOADS)/WWP_M_sl{1..7}_250m_ll.tif)
 
 # To force make to use singularity: make USE_SINGULARITY=1 awc.tif
 USE_SINGULARITY=0

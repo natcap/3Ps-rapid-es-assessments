@@ -11,13 +11,13 @@ LOGGER = logging.getLogger(os.path.basename(__file__))
 gdal.SetCacheMax(2**32)
 NODATA_FLOAT32 = numpy.finfo(numpy.float32).min
 ISRIC_2017_AWCH1_RASTERS = {
-    '0cm':   'AWCh1_M_sl1_250m_ll.tif',
-    '5cm':   'AWCh1_M_sl2_250m_ll.tif',
-    '15cm':  'AWCh1_M_sl3_250m_ll.tif',
-    '30cm':  'AWCh1_M_sl4_250m_ll.tif',
-    '60cm':  'AWCh1_M_sl5_250m_ll.tif',
-    '100cm': 'AWCh1_M_sl6_250m_ll.tif',
-    '200cm': 'AWCh1_M_sl7_250m_ll.tif',
+    '0cm':   'WWP_M_sl1_250m_ll.tif',
+    '5cm':   'WWP_M_sl2_250m_ll.tif',
+    '15cm':  'WWP_M_sl3_250m_ll.tif',
+    '30cm':  'WWP_M_sl4_250m_ll.tif',
+    '60cm':  'WWP_M_sl5_250m_ll.tif',
+    '100cm': 'WWP_M_sl6_250m_ll.tif',
+    '200cm': 'WWP_M_sl7_250m_ll.tif',
 }
 
 
