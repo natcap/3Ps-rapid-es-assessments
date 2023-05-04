@@ -63,10 +63,12 @@ def calculate_awc(
             ((100 - 60) * (soil_depth_60cm[valid] + soil_depth_100cm[valid])) +
             ((200 - 100) * (soil_depth_100cm[valid] + soil_depth_200cm[valid]))
         ))
+
+        # Make sure the range is reasonable while we're calculating it.
+        assert awc[valid].min() >= 0, "Calculated AWC must be >= 0"
+        assert awc[valid].max() <= 1, "Calculated AWC must be <= 1"
         return awc
 
-    # TODO: build in some warnings if the values are outside of the expected
-    # range of 0-100 (or 0-1 if we've already divided by 100).
     driver_opts = ('GTIFF', (
         'TILED=YES', 'BIGTIFF=YES', 'COMPRESS=LZW',
         'BLOCKXSIZE=256', 'BLOCKYSIZE=256', 'PREDICTOR=1', 'NUM_THREADS=4'))
