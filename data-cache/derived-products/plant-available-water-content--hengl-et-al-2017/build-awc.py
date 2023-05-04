@@ -62,7 +62,7 @@ def calculate_awc(
             ((60 - 30) * (soil_depth_30cm[valid] + soil_depth_60cm[valid])) +
             ((100 - 60) * (soil_depth_60cm[valid] + soil_depth_100cm[valid])) +
             ((200 - 100) * (soil_depth_100cm[valid] + soil_depth_200cm[valid]))
-        )) / 100
+        ))
         return awc
 
     # TODO: build in some warnings if the values are outside of the expected
