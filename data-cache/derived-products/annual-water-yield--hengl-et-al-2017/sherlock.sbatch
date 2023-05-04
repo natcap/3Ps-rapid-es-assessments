@@ -13,4 +13,4 @@
 make -j 8 download
 
 # Force the use of singularity
-make USE_SINGULARITY=1 awc.tif
+make USE_SINGULARITY=1 annual-water-yield--hengl-et-al-2017.tif
