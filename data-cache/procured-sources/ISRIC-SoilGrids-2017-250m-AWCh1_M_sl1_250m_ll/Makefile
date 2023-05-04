@@ -15,7 +15,7 @@ $(CHECKSUM_FILE):
 
 # If the raster isn't already present and verifiable, grab it.
 %: $(CHECKSUM_FILE)
-	grep $(subst $(TARGET_PREFIX),,$@)$$ $(CHECKSUM_FILE) | sha256sum --check --status) \
+	(grep $(subst $(TARGET_PREFIX),,$@)$$ $(CHECKSUM_FILE) | sha256sum --check --status) \
 	   	|| wget $(WGET_ARGS) -O $@ $(ISRIC_BASEURL)/$(subst $(TARGET_PREFIX),,$@)
 
 .PHONY: clean
