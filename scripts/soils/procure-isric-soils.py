@@ -8,7 +8,6 @@ import shutil
 
 from bs4 import BeautifulSoup
 
-import appdirs
 import numpy
 import pygeoprocessing
 import requests
@@ -198,8 +197,7 @@ def calculate_awc(
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '--cache-dir', default=appdirs.user_cache_dir('isric-erod', 'natcap'))
+    parser.add_argument('--cache-dir', default='downloads')
     #parser.add_argument('target_path')
 
     parsed_args = parser.parse_args()
