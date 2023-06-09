@@ -223,6 +223,7 @@ def main():
     graph = taskgraph.TaskGraph(taskgraph_dir, n_workers)
 
     ## For sand, clay, silt, or ALL
+    LOGGER.info(f'soil type: {parsed_args.soil_type.lower()}')
     soil_type_to_procure = [parsed_args.soil_type.lower()]
     if parsed_args.soil_type.lower() == 'all':
         soil_type_to_procure = list(ISRIC_SOILGRIDS_TYPES.keys())
@@ -230,7 +231,7 @@ def main():
     # 1. Get list of tile urls and save to csv file with corresponding
     # checksum, so we can skip this step if already done previously.
     soil_tiles_csv_lookup = {}
-    for soil_type, soil_path in ISRIC_SOILGRIDS_TYPES.items():
+    for soil_type in soil_type_to_procure:
 
         soil_tiles_csv_path = os.path.join(cache_dir, f'{soil_type}-tile-urls.csv')
         soil_tiles_csv_lookup[soil_type] = soil_tiles_csv_path
