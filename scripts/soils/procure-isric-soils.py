@@ -22,11 +22,13 @@ logging.basicConfig(
         ' [%(funcName)s:%(lineno)d] %(message)s'),
 )
 LOGGER = logging.getLogger('ISRIC-Erodibility')
+logging.getLogger("requests").setLevel(logging.WARNING)
+logging.getLogger("urllib3").setLevel(logging.WARNING)
 URL_BASE = 'https://files.isric.org/soilgrids/latest/data/'
 ISRIC_SOILGRIDS_TYPES = {
     'sand': 'sand_0-5cm_mean',
-    #'clay': 'clay_0-5cm_mean',
-    #'silt': 'silt_0-5cm_mean',
+    'clay': 'clay_0-5cm_mean',
+    'silt': 'silt_0-5cm_mean',
     #'soc': 'sand_0-5cm_mean',
 }
 
@@ -42,46 +44,48 @@ def _get_remote_raster_urls(soil_type, tile_csv_path):
     LOGGER.info(f"vrt url: {vrt_url}")
     LOGGER.info(f"vrt checksum url: {vrt_checksum_url}")
 
-    vrt_checksum_response = requests.get(vrt_checksum_url).text
-    with open(tile_csv_path, 'w', newline='') as csv_file:
-        csv_writer = csv.writer(csv_file)
-        for line in vrt_checksum_response.splitlines():
-            checksum_data = line.split()
-            if checksum_data[1] == f"{soil_type}_0-5cm_mean.vrt":
-                csv_writer.writerow([vrt_url, checksum_data[0]])
+    with requests.Session() as s:
 
-    # Get tile urls from the VRT. This avoids Python URL directory walking.
-    page = requests.get(vrt_url).text
-    soup = BeautifulSoup(page, 'html.parser')
-    tile_url_list = []
-    checksum_url_list = []
+        vrt_checksum_response = s.get(vrt_checksum_url).text
+        with open(tile_csv_path, 'w', newline='') as csv_file:
+            csv_writer = csv.writer(csv_file)
+            for line in vrt_checksum_response.splitlines():
+                checksum_data = line.split()
+                if checksum_data[1] == f"{soil_type}_0-5cm_mean.vrt":
+                    csv_writer.writerow([vrt_url, checksum_data[0]])
 
-    LOGGER.info(f"Get tile URLs from VRT")
-    for node in soup.find_all('sourcefilename'):
-        tile_relative_url = "/".join(node.string.split("/")[1:])
-        tile_complete_url = f"{URL_BASE}{soil_type}/{tile_relative_url}"
-        tile_url_list.append(tile_complete_url)
-        checksum_url = os.path.dirname(tile_complete_url) + '/' + CHECKSUM_KEY
-        if not checksum_url in checksum_url_list:
-            checksum_url_list.append(checksum_url)
+        # Get tile urls from the VRT. This avoids Python URL directory walking.
+        page = s.get(vrt_url).text
+        soup = BeautifulSoup(page, 'html.parser')
+        tile_url_list = []
+        checksum_url_list = []
 
-    # Create checksum lookup to map tile urls to checksums
-    LOGGER.info(f"Create checksum lookup")
-    checksum_tile_lookup = {}
-    for checksum_file in checksum_url_list:
-        checksum_response = requests.get(checksum_file).text
-        for line in checksum_response.splitlines():
-            checksum_data = line.split()
-            checksum_tile_lookup[checksum_data[1]] = checksum_data[0]
+        LOGGER.info(f"Get tile URLs from VRT")
+        for node in soup.find_all('sourcefilename'):
+            tile_relative_url = "/".join(node.string.split("/")[1:])
+            tile_complete_url = f"{URL_BASE}{soil_type}/{tile_relative_url}"
+            tile_url_list.append(tile_complete_url)
+            checksum_url = os.path.dirname(tile_complete_url) + '/' + CHECKSUM_KEY
+            if not checksum_url in checksum_url_list:
+                checksum_url_list.append(checksum_url)
 
-    # Write out tile urls with corresponding checksums
-    LOGGER.info(f"Write out tile urls and checksums to file")
-    with open(tile_csv_path, 'a', newline='') as csv_file:
-        csv_writer = csv.writer(csv_file)
-        for url_path in tile_url_list:
-            url_key = os.path.basename(url_path)
-            checksum = checksum_tile_lookup[url_key]
-            csv_writer.writerow([url_path, checksum])
+        # Create checksum lookup to map tile urls to checksums
+        LOGGER.info(f"Create checksum lookup")
+        checksum_tile_lookup = {}
+        for checksum_file in checksum_url_list:
+            checksum_response = s.get(checksum_file).text
+            for line in checksum_response.splitlines():
+                checksum_data = line.split()
+                checksum_tile_lookup[checksum_data[1]] = checksum_data[0]
+
+        # Write out tile urls with corresponding checksums
+        LOGGER.info(f"Write out tile urls and checksums to file")
+        with open(tile_csv_path, 'a', newline='') as csv_file:
+            csv_writer = csv.writer(csv_file)
+            for url_path in tile_url_list:
+                url_key = os.path.basename(url_path)
+                checksum = checksum_tile_lookup[url_key]
+                csv_writer.writerow([url_path, checksum])
 
     LOGGER.info(f"Saving tile urls and checksum complete")
 
@@ -198,7 +202,9 @@ def calculate_awc(
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--cache-dir', default='downloads')
-    #parser.add_argument('target_path')
+    parser.add_argument('--soil-type',
+                        choices=('clay', 'sand', 'silt', 'soc', 'all'),
+                        default='all')
 
     parsed_args = parser.parse_args()
 
@@ -216,7 +222,10 @@ def main():
     n_workers = 4
     graph = taskgraph.TaskGraph(taskgraph_dir, n_workers)
 
-    ## For EACH sand, clay, silt
+    ## For sand, clay, silt, or ALL
+    soil_type_to_procure = [parsed_args.soil_type.lower()]
+    if parsed_args.soil_type.lower() == 'all':
+        soil_type_to_procure = list(ISRIC_SOILGRIDS_TYPES.keys())
 
     # 1. Get list of tile urls and save to csv file with corresponding
     # checksum, so we can skip this step if already done previously.
