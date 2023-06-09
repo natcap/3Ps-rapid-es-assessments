@@ -219,7 +219,7 @@ def main():
     #LOGGER.info(f"Looking for existing Erodibility rasters in {cache_dir}")
 
     # set up taskgraph to spread out workload and not repeat work
-    n_workers = 4
+    n_workers = 6
     graph = taskgraph.TaskGraph(taskgraph_dir, n_workers)
 
     ## For sand, clay, silt, or ALL
@@ -232,8 +232,11 @@ def main():
     # checksum, so we can skip this step if already done previously.
     soil_tiles_csv_lookup = {}
     for soil_type in soil_type_to_procure:
+        soil_dir = os.path.join(cache_dir, soil_type)
+        if not os.path.isdir(soil_dir):
+            os.mkdir(soil_dir)
 
-        soil_tiles_csv_path = os.path.join(cache_dir, f'{soil_type}-tile-urls.csv')
+        soil_tiles_csv_path = os.path.join(soil_dir, f'{soil_type}-tile-urls.csv')
         soil_tiles_csv_lookup[soil_type] = soil_tiles_csv_path
 
         _ = graph.add_task(
@@ -259,14 +262,12 @@ def main():
         #           tile_dir_2/
         #      ...
         soil_dir = os.path.join(cache_dir, soil_type)
-        if not os.path.isdir(soil_dir):
-            os.mkdir(soil_dir)
         soil_tiles_dir = os.path.join(soil_dir, ISRIC_SOILGRIDS_TYPES[soil_type])
         if not os.path.isdir(soil_tiles_dir):
             os.mkdir(soil_tiles_dir)
 
         download_task_list = []
-        only_download_n = 10
+        #only_download_n = 10
         with open(soil_tiles_csv_path, 'r') as csv_fp:
             reader = csv.reader(csv_fp)
             for row in reader:
@@ -299,8 +300,8 @@ def main():
                 )
                 download_task_list.append(download_task)
 
-                if len(download_task_list) >= only_download_n:
-                    break
+                #if len(download_task_list) >= only_download_n:
+                #    break
 
 
     graph.close()
