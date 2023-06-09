@@ -29,7 +29,7 @@ ISRIC_SOILGRIDS_TYPES = {
     'sand': 'sand_0-5cm_mean',
     'clay': 'clay_0-5cm_mean',
     'silt': 'silt_0-5cm_mean',
-    #'soc': 'sand_0-5cm_mean',
+    'soc': 'soc_0-5cm_mean',
 }
 
 CHECKSUM_KEY = "checksum.sha256.txt"
