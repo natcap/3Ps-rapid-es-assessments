@@ -220,7 +220,8 @@ def main():
 
     # set up taskgraph to spread out workload and not repeat work
     n_workers = 6
-    graph = taskgraph.TaskGraph(taskgraph_dir, n_workers)
+    LOGGER.info(f"TaskGraph workers: {n_workers}")
+    graph = taskgraph.TaskGraph(taskgraph_dir, n_workers, reporting_interval=60*5)
 
     ## For sand, clay, silt, or ALL
     LOGGER.info(f'soil type: {parsed_args.soil_type.lower()}')
@@ -306,6 +307,8 @@ def main():
 
     graph.close()
     graph.join()
+
+    LOGGER.info(f"Soils download complete for {parsed_args.soil_type}")
 
     # 3. Download the tiles
 
