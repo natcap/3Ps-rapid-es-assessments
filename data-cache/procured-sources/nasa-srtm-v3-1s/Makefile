@@ -1,0 +1,48 @@
+SHELL := bash
+SRTM_URLS_FILE := srtm30m_urls.txt
+SRTM_URLS_SOURCE := https://www.opentopodata.org/datasets/$(SRTM_URLS_FILE)
+BASE_URL := https://e4ftl01.cr.usgs.gov/MEASURES/SRTMGL1.003/2000.02.11/
+TILESDIR := tiles
+N_WORKERS := 8
+
+#ALL_FILES = $(shell cat $(SRTM_URLS_FILE) | awk -F '/' ' { print "tiles/"$6 } ')
+ALL_FILES := $(shell cat $(SRTM_URLS_FILE)) # | xargs basename | awk ' {print "tiles/"$1} ' | echo)
+
+
+$(SRTM_URLS_FILE):
+	curl $(SRTM_URLS_SOURCE) > $(SRTM_URLS_FILE)
+
+$(TILESDIR):
+	mkdir $@
+
+# Sometimes it's useful to use a single HTTP session for this
+.PHONY: download-batch
+download-batch: $(TILESDIR)
+	wget --no-verbose \
+		--no-clobber \
+		--user="$(NASA_EARTHDATA_USERNAME)" --password="$(NASA_EARTHDATA_PASSWORD)" \
+		--directory-prefix=$(TILESDIR) --input-file $(SRTM_URLS_FILE)
+	python3 clean-srtm-tiles.py $(TILESDIR)
+
+srtm.vrt:
+	gdalbuildvrt $@ tiles/*.hgt{,.zip}
+
+srtm-v3-1s.tif: srtm.vrt
+	GDAL_CACHEMAX=2048 gdal_translate \
+				-ot "Int16" \
+				-co "COMPRESS=LZW" \
+				-co "PREDICTOR=2" \
+				-co "TILED=YES" \
+				-co "SPARSE_OK=TRUE" \
+				-co "BIGTIFF=YES" \
+				-co "NUM_THREADS=$(N_WORKERS)" \
+			    srtm.vrt $@
+
+srtm-v3-1s.tif.ovr: srtm-v3-1s.tif
+	GDAL_CACHEMAX=2048 gdaladdo -r near -ro srtm-v3-1s.tif
+
+srtm-v3-1s-colorized.tif: srtm-v3-1s.tif
+	gdaldem color-relief -alpha srtm-v3-1s.tif colorprofile.txt $@
+
+xyztiles: srtm-v3-1s-colorized.tif
+	gdal2tiles.py --xyz -r near --zoom=1-8 --processes=$(N_WORKERS) srtm-v3-1s-colorized.tif $@
