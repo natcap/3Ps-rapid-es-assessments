@@ -2,11 +2,11 @@ SHELL := bash
 SRTM_URLS_FILE := srtm30m_urls.txt
 SRTM_URLS_SOURCE := https://www.opentopodata.org/datasets/$(SRTM_URLS_FILE)
 BASE_URL := https://e4ftl01.cr.usgs.gov/MEASURES/SRTMGL1.003/2000.02.11/
-TILESDIR := tiles
 N_WORKERS := 8
 
-#ALL_FILES = $(shell cat $(SRTM_URLS_FILE) | awk -F '/' ' { print "tiles/"$6 } ')
-ALL_FILES := $(shell cat $(SRTM_URLS_FILE)) # | xargs basename | awk ' {print "tiles/"$1} ' | echo)
+# https://stackoverflow.com/a/2547973
+ROOT_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
+TILESDIR := tiles
 
 
 $(SRTM_URLS_FILE):
@@ -22,7 +22,7 @@ download-batch: $(TILESDIR)
 		--no-clobber \
 		--user="$(NASA_EARTHDATA_USERNAME)" --password="$(NASA_EARTHDATA_PASSWORD)" \
 		--directory-prefix=$(TILESDIR) --input-file $(SRTM_URLS_FILE)
-	python3 clean-srtm-tiles.py $(TILESDIR)
+	python3 $(ROOT_DIR)/clean-srtm-tiles.py $(TILESDIR)
 
 srtm.vrt:
 	gdalbuildvrt $@ tiles/*.hgt{,.zip}

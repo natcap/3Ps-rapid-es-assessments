@@ -3,8 +3,6 @@ import os
 import sys
 import zipfile
 
-from osgeo import gdal
-
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger(os.path.basename(__file__))
 
