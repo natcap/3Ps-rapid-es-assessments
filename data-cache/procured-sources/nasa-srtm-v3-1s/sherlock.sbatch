@@ -11,7 +11,7 @@
 set -ex
 TARGET_OAK_DIR=$OAK/global-dataset-cache/srtm-v3-1s
 
-alias lscratch_make="make N_WORKERS=$SLURM_CPUS_PER_TASK -C $L_SCRATCH -f $(pwd)/Makefile"
+lscratch_make="make N_WORKERS=$SLURM_CPUS_PER_TASK -C $L_SCRATCH -f $(pwd)/Makefile"
 
 # download all the tiles from NASA
 $lscratch_make download-batch
