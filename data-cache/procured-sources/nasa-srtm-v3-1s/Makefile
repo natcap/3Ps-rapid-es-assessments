@@ -21,7 +21,7 @@ download-batch: $(TILESDIR)
 	wget --no-verbose \
 		--no-clobber \
 		--user="$(NASA_EARTHDATA_USERNAME)" --password="$(NASA_EARTHDATA_PASSWORD)" \
-		--directory-prefix=$(TILESDIR) --input-file $(SRTM_URLS_FILE)
+		--directory-prefix=$(TILESDIR) --input-file $(ROOT_DIR)/$(SRTM_URLS_FILE)
 	python3 $(ROOT_DIR)/clean-srtm-tiles.py $(TILESDIR)
 
 srtm.vrt:
