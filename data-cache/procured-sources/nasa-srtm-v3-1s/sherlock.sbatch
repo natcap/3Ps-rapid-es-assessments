@@ -17,8 +17,14 @@ TARGET_OAK_DIR=$OAK/global-dataset-cache/srtm-v3-1s
 
 lscratch_make="make N_WORKERS=$SLURM_CPUS_PER_TASK -C $L_SCRATCH -f $(pwd)/Makefile"
 
-# download all the tiles from NASA
-$lscratch_make download-batch
+# download all the tiles from NASA to a directory on SCRATCH that we can use if
+# something fails later on, without having to re-fetch _everything_.
+SCRATCH_TILES_DIR=$SCRATCH/srtm-v3-1s/tiles
+mkdir -p $SCRATCH_TILES_DIR || echo "Dir already exists: $SCRATCH_TILES_DIR"
+$lscratch_make TILESDIR=$SCRATCH_TILES_DIR download-batch
+
+# Copy tiles to L_SCRATCH for easier processing of later steps
+cp -r $SCRATCH_TILES_DIR $L_SCRATCH/tiles
 
 $lscratch_make srtm-v3-1s.tif
 cp srtm-v3-1s.tif $TARGET_OAK_DIR
