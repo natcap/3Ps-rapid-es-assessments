@@ -26,6 +26,7 @@ PROBLEMATIC_TILES = set([
     "N43E049",
     "N44E048",
     "N44E049",
+    "N47W087",  # This additional one was found by trial and error
 ])
 
 def clean_files(tiles_dir):
