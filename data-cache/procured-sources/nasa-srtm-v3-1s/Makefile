@@ -33,7 +33,7 @@ srtm-v3-1s.tif: srtm.vrt
 				-co "COMPRESS=LZW" \
 				-co "PREDICTOR=2" \
 				-co "TILED=YES" \
-				-co "SPARSE_OK=TRUE" \
+				-co "SPARSE_OK=FALSE" \
 				-co "BIGTIFF=YES" \
 				-co "NUM_THREADS=$(N_WORKERS)" \
 			    srtm.vrt $@
