@@ -32,6 +32,6 @@ cp srtm-v3-1s.tif.ovr $TARGET_OAK_DIR
 rm srtm-v3-1s.tif.ovr
 
 $lscratch_make xyztiles
-cp -r $L_SCRATCH/xyztiles $TARGET_OAK_DIR
+cp -rv $L_SCRATCH/xyztiles $TARGET_OAK_DIR
 
 echo "Finished building SRTM!"
