@@ -39,7 +39,10 @@ srtm-v3-1s.tif: srtm.vrt
 			    srtm.vrt $@
 
 srtm-v3-1s.tif.ovr: srtm-v3-1s.tif
-	GDAL_CACHEMAX=2048 gdaladdo -r near -ro srtm-v3-1s.tif
+	GDAL_CACHEMAX=2048 GDAL_NUM_THREADS=$(N_WORKERS) gdaladdo \
+				  --config COMPRESS_OVERVIEW LZW \
+				  --config PREDICTOR_OVERVIEW 2 \
+				  -r near -ro srtm-v3-1s.tif
 
 srtm-v3-1s-colorized.tif: srtm-v3-1s.tif
 	gdaldem color-relief -alpha srtm-v3-1s.tif colorprofile.txt $@
