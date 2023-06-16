@@ -18,6 +18,7 @@ module load physics gdal/3.5.2
 module load python/3.9.0
 
 TARGET_OAK_DIR=$OAK/global-dataset-cache/srtm-v3-1s
+mkdir -p $TARGET_OAK_DIR || echo "Directory already exists: $TARGET_OAK_DIR"
 
 lscratch_make="make N_WORKERS=$SLURM_CPUS_PER_TASK -C $L_SCRATCH -f $(pwd)/Makefile"
 
@@ -41,7 +42,7 @@ print_now
 rm -r $L_SCRATCH/tiles
 $lscratch_make srtm-v3-1s.tif.ovr
 cp $L_SCRATCH/srtm-v3-1s.tif.ovr $TARGET_OAK_DIR
-rm $L_SRATCH/srtm-v3-1s.tif.ovr
+rm $L_SCRATCH/srtm-v3-1s.tif.ovr
 
 print_now
 $lscratch_make xyztiles
