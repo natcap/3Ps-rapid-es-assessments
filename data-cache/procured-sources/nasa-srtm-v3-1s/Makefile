@@ -19,7 +19,7 @@ $(TILESDIR):
 .PHONY: download-batch
 download-batch: $(TILESDIR)
 	cat $(ROOT_DIR)/$(SRTM_URLS_FILE) | parallel -j$(N_WORKERS) "wget \
-		--no-verbose --no-clobber \
+		--no-verbose --no-clobber --tries=20 --random-wait --retry-connrefused \
 		--user=\"$(NASA_EARTHDATA_USERNAME)\" --password=\"$(NASA_EARTHDATA_PASSWORD)\" \
 		--directory-prefix=$(TILESDIR) {}"
 	python3 $(ROOT_DIR)/clean-srtm-tiles.py $(TILESDIR)
