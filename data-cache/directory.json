@@ -1,5 +1,16 @@
 {
-    "public_layers": [
-        "awc-isric-soilgrids"
-    ]
+    "public_layers": {
+        "awc-isric-soilgrids": {
+            "title": "Plant Available Water Content",
+            "download": "awc.tif",
+            "colors": "pawc.gcolors",
+            "xyztiles": "tiles"
+        },
+        "srtm-v3-1s": {
+            "title": "SRTM",
+            "download": "srtm-v3-1s.tif",
+            "colors": "srtm.gcolors",
+            "xyztiles": "tiles"
+        }
+    }
 }

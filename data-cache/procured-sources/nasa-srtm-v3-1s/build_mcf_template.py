@@ -27,8 +27,8 @@ def main(raster_file, mcf_file):
             #'dataseturi': I'm not sure ... this is optional, leaving out
         },
         'spatial': {
-            'datatype': 'grid',
-            'geomtype': 'point',
+            'datatype': 'grid',  # because it's a raster
+            'geomtype': 'point',  # because it's a raster
         },
         'identification': {
             'language': 'en',
