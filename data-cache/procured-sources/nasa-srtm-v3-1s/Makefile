@@ -9,6 +9,7 @@ GTIFF_CREATE_OPTS := -co "COMPRESS=LZW" \
 					 -co "SPARSE_OK=False" \
 					 -co "BIGTIFF=YES" \
 					 -co "NUM_THREADS=$(N_WORKERS)"
+SETCACHE := GDAL_CACHEMAX=2048
 
 # https://stackoverflow.com/a/2547973
 ROOT_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
@@ -34,16 +35,16 @@ srtm.vrt:
 	gdalbuildvrt $@ tiles/*.hgt{,.zip}
 
 srtm-v3-1s.tif: srtm.vrt
-	GDAL_CACHEMAX=2048 gdal_translate -ot "Int16" $(GTIFF_CREATE_OPTS) srtm.vrt $@
+	$(SETCACHE) gdal_translate -ot "Int16" $(GTIFF_CREATE_OPTS) srtm.vrt $@
 
 srtm-v3-1s.tif.ovr: srtm-v3-1s.tif
-	GDAL_CACHEMAX=2048 GDAL_NUM_THREADS=$(N_WORKERS) gdaladdo \
+	$(SETCACHE) GDAL_NUM_THREADS=$(N_WORKERS) gdaladdo \
 				  --config COMPRESS_OVERVIEW LZW \
 				  --config PREDICTOR_OVERVIEW 2 \
 				  -r near -ro srtm-v3-1s.tif
 
 srtm-v3-1s-colorized.tif: srtm-v3-1s.tif
-	gdaldem color-relief -alpha $(GTIFF_CREATE_OPTS) srtm-v3-1s.tif colorprofile.txt $@
+	$(SETCACHE) gdaldem color-relief -alpha $(GTIFF_CREATE_OPTS) srtm-v3-1s.tif colorprofile.txt $@
 
 xyztiles: srtm-v3-1s-colorized.tif
-	gdal2tiles.py --xyz -r near --zoom=1-8 --processes=$(N_WORKERS) srtm-v3-1s-colorized.tif $@
+	$(SETCACHE) gdal2tiles.py --xyz -r near --zoom=1-8 --processes=$(N_WORKERS) srtm-v3-1s-colorized.tif $@
