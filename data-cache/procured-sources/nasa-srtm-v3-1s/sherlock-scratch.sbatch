@@ -29,13 +29,17 @@ scratch_make="make N_WORKERS=$SLURM_CPUS_PER_TASK -C $SCRATCH_DIR -f $(pwd)/Make
 $scratch_make download-batch
 
 print_now
-$scratch_make srtm-v3-1s.tif && cp $SCRATCH_DIR/srtm-v3-1s.tif $TARGET_OAK_DIR &
+$scratch_make srtm-v3-1s.tif
+cp $SCRATCH_DIR/srtm-v3-1s.tif $TARGET_OAK_DIR &
 
 print_now
-$scratch_make srtm-v3-1s.tif.ovr && cp $SCRATCH_DIR/srtm-v3-1s.tif.ovr $TARGET_OAK_DIR &
+$scratch_make srtm-v3-1s.tif.ovr
+cp $SCRATCH_DIR/srtm-v3-1s.tif.ovr $TARGET_OAK_DIR &
 
 print_now
-$scratch_make xyztiles && print_now && cp -rv $SCRATCH_DIR/xyztiles $TARGET_OAK_DIR
+$scratch_make xyztiles
+print_now
+cp -rv $SCRATCH_DIR/xyztiles $TARGET_OAK_DIR
 print_now
 
 echo "Waiting for backgrounded jobs to complete"
