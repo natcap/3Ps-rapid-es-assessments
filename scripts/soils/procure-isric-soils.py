@@ -137,66 +137,12 @@ def fetch_raster(source_raster_url, dest_raster_path, checksum_alg, checksum):
 
     LOGGER.info(f"Downloaded {source_raster_url}")
     calculated_checksum = _digest_file(dest_raster_path, checksum_alg)
+    LOGGER.info(f"Verifying checksum on {dest_raster_path}")
     if calculated_checksum != checksum:
-        LOGGER.info(f"calc checksum: {calculated_checksum} vs {checksum}")
-        raise RuntimeError(f"Checksums do not match on {dest_raster_path}")
-
-
-def calculate_awc(
-        soil_depth_0cm_path,
-        soil_depth_5cm_path,
-        soil_depth_15cm_path,
-        soil_depth_30cm_path,
-        soil_depth_60cm_path,
-        soil_depth_100cm_path,
-        soil_depth_200cm_path,
-        target_awc_path):
-    rasters = [
-        soil_depth_0cm_path,
-        soil_depth_5cm_path,
-        soil_depth_15cm_path,
-        soil_depth_30cm_path,
-        soil_depth_60cm_path,
-        soil_depth_100cm_path,
-        soil_depth_200cm_path,
-    ]
-    expected_nodata = 255
-    nodatas = [
-        pygeoprocessing.get_raster_info(path)['nodata'][0] for path in rasters]
-    assert nodatas == [expected_nodata]*len(nodatas)
-
-    def _calculate(soil_depth_0cm, soil_depth_5cm, soil_depth_15cm,
-                   soil_depth_30cm, soil_depth_60cm, soil_depth_100cm,
-                   soil_depth_200cm):
-        awc = numpy.full(soil_depth_0cm.shape, NODATA_FLOAT32,
-                         dtype=numpy.float32)
-        valid_mask = numpy.ones(soil_depth_0cm.shape, dtype=bool)
-        for array in [soil_depth_0cm, soil_depth_5cm, soil_depth_15cm,
-                      soil_depth_30cm, soil_depth_60cm, soil_depth_100cm,
-                      soil_depth_200cm]:
-            valid_mask &= (array != 255)
-
-        awc[valid_mask] = ((1/200) * (1/2) * (
-            ((5 - 0) * (soil_depth_0cm[valid_mask] + soil_depth_5cm[valid_mask])) +
-            ((15 - 5) * (soil_depth_5cm[valid_mask] + soil_depth_15cm[valid_mask])) +
-            ((30 - 15) * (soil_depth_15cm[valid_mask] + soil_depth_30cm[valid_mask])) +
-            ((60 - 30) * (soil_depth_30cm[valid_mask] + soil_depth_60cm[valid_mask])) +
-            ((100 - 60) * (soil_depth_60cm[valid_mask] + soil_depth_100cm[valid_mask])) +
-            ((200 - 100) * (soil_depth_100cm[valid_mask] + soil_depth_200cm[valid_mask])))
-        ) / 100
-        return awc
-
-
-    # TODO: build overviews as well before upload.
-    # TODO: build in some warnings if the values are outside of the expected
-    # range of 0-100 (or 0-1 if we've already divided by 100).
-    driver_opts = ('GTIFF', (
-    'TILED=YES', 'BIGTIFF=YES', 'COMPRESS=LZW',
-    'BLOCKXSIZE=256', 'BLOCKYSIZE=256', 'PREDICTOR=1', 'NUM_THREADS=4'))
-    raster_paths = [(path, 1) for path in rasters]
-    pygeoprocessing.geoprocessing.raster_calculator(
-        raster_paths, _calculate, target_awc_path,
-        gdal.GDT_Float32, float(NODATA_FLOAT32))
+        raise AssertionError(
+            f"{checksum_alg} for {dest_raster_path} did not match what's "
+            "expected. Try deleting the file and re-running the program to "
+            "re-download the file.")
 
 
 def main():
@@ -310,31 +256,6 @@ def main():
 
     LOGGER.info(f"Soils download complete for {parsed_args.soil_type}")
 
-    # 3. Download the tiles
-
-
-#    local_soil_rasters = []
-#    for soil_raster_dict in ISRIC_2017_AWCH1_RASTERS.values():
-#        local_file = os.path.join(
-#            cache_dir, os.path.basename(soil_raster_dict['url']))
-#        if not os.path.exists(local_file):
-#            LOGGER.info(f"File not found: {local_file}")
-#            fetch_raster(soil_raster_dict['url'], local_file, 'md5',
-#                         soil_raster_dict['md5'])
-#        else:
-#            LOGGER.info(f"Verifying checksum on {local_file}")
-#            if not _digest_file(local_file, 'md5') == soil_raster_dict['md5']:
-#                raise AssertionError(
-#                    "MD5sum for {local_file} did not match what's expected. "
-#                    "Try deleting the file and re-running the program to "
-#                    "re-download the file.")
-#        local_soil_rasters.append(local_file)
-#
-#    LOGGER.info(f"Calculating AWC to {parsed_args.target_awc}")
-#    calculate_awc(*local_soil_rasters, parsed_args.target_awc)
-#
-#    LOGGER.info(f"AWC complete; written to {parsed_args.target_awc}")
-#
 
 if __name__ == '__main__':
     main()

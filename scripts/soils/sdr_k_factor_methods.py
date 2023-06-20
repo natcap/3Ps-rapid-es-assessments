@@ -2,6 +2,7 @@
 
 Refactored from Jade Delevaux's R script.
 """
+import argparse
 import logging
 import os
 
@@ -10,10 +11,15 @@ import pygeoprocessing
 import taskgraph
 from osgeo import gdal
 
-logging.basicConfig(level=logging.INFO)
-LOGGER = logging.getLogger('ISRIC-Erodibility')
-
+logging.basicConfig(
+    level=logging.INFO,
+    format=(
+        '%(asctime)s (%(relativeCreated)d) %(levelname)s %(name)s'
+        ' [%(funcName)s:%(lineno)d] %(message)s'),
+)
+LOGGER = logging.getLogger('K-Factor')
 NODATA_FLOAT32 = numpy.finfo(numpy.float32).min
+gdal.SetCacheMax(2**32)
 
 def calculate_dg(clay_path, sand_path, silt_path, dg_output_path):
     """Calculate Dg for each particle size class (clay, sand, silt).
@@ -64,16 +70,14 @@ def calculate_dg(clay_path, sand_path, silt_path, dg_output_path):
 
         return dg
 
-    # TODO: build overviews as well before upload.
-    # TODO: build in some warnings if the values are outside of the expected
-    # range of 0-100 (or 0-1 if we've already divided by 100).
     driver_opts = ('GTIFF', (
         'TILED=YES', 'BIGTIFF=YES', 'COMPRESS=LZW', 'BLOCKXSIZE=256',
         'BLOCKYSIZE=256', 'PREDICTOR=1', 'NUM_THREADS=4'))
     raster_path_band = [(path, 1) for path in raster_paths]
     pygeoprocessing.geoprocessing.raster_calculator(
         raster_path_band, _calculate_dg, dg_output_path,
-        gdal.GDT_Float32, float(NODATA_FLOAT32))
+        gdal.GDT_Float32, float(NODATA_FLOAT32),
+        raster_driver_creation_tuple=driver_opts)
 
 
 def calculate_renard_k_factor(dg_path, k_factor_output_path):
@@ -99,16 +103,17 @@ def calculate_renard_k_factor(dg_path, k_factor_output_path):
                         ((numpy.log(dg[valid_mask]) + 1.659) / 0.7101)**2))))
         return k_factor
 
-    # TODO: build overviews as well before upload.
-    # TODO: build in some warnings if the values are outside of the expected
-    # range of 0-100 (or 0-1 if we've already divided by 100).
     driver_opts = ('GTIFF', (
         'TILED=YES', 'BIGTIFF=YES', 'COMPRESS=LZW', 'BLOCKXSIZE=256',
         'BLOCKYSIZE=256', 'PREDICTOR=1', 'NUM_THREADS=4'))
     pygeoprocessing.geoprocessing.raster_calculator(
         [(dg_path, 1)], k_factor, k_factor_output_path,
-        gdal.GDT_Float32, float(NODATA_FLOAT32))
+        gdal.GDT_Float32, float(NODATA_FLOAT32),
+        raster_driver_creation_tuple=driver_opts)
 
+    pygeoprocessing.geoprocessing.build_overviews(
+        k_factor_output_path, internal=False, resample_method='near',
+        overwrite=True, levels='auto')
 
 def calculate_williams_k_factor(clay_path, sand_path, silt_path, soc_path, target_path):
     """K-factor derived using Williams (1995) Equation.
@@ -124,7 +129,6 @@ def calculate_williams_k_factor(clay_path, sand_path, silt_path, soc_path, targe
         Nothing
     """
 
-    #expected_nodata = 255
     raster_paths = [clay_path, sand_path, silt_path, soc_path]
     nodatas = [
         pygeoprocessing.get_raster_info(path)['nodata'][0] for path in raster_paths]
@@ -190,25 +194,49 @@ def calculate_williams_k_factor(clay_path, sand_path, silt_path, soc_path, targe
             fsand[valid_mask])
         return k_factor_result
 
-    # TODO: build overviews as well before upload.
-    # TODO: build in some warnings if the values are outside of the expected
-    # range of 0-100 (or 0-1 if we've already divided by 100).
     raster_path_band = [(path, 1) for path in raster_paths]
     driver_opts = ('GTIFF', (
         'TILED=YES', 'BIGTIFF=YES', 'COMPRESS=LZW', 'BLOCKXSIZE=256',
         'BLOCKYSIZE=256', 'PREDICTOR=1', 'NUM_THREADS=4'))
     pygeoprocessing.geoprocessing.raster_calculator(
         raster_path_band, _calculate_k_williams, target_path,
-        gdal.GDT_Float32, float(NODATA_FLOAT32))
+        gdal.GDT_Float32, float(NODATA_FLOAT32),
+        raster_driver_creation_tuple=driver_opts)
+
+    pygeoprocessing.geoprocessing.build_overviews(
+        target_path, internal=False, resample_method='near',
+        overwrite=True, levels='auto')
 
 
 if __name__ == "__main__":
+    LOGGER.info("Starting script to process K Factor from ISRIC soil grids.")
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--workspace', default='soils-k-factor')
+    parser.add_argument('--clay')
+    parser.add_argument('--sand')
+    parser.add_argument('--silt')
+    parser.add_argument('--soc')
+
+    parsed_args = parser.parse_args()
+    LOGGER.info(f"Parsed args: {parsed_args}")
+
+    workspace_dir = os.path.abspath(parsed_args.workspace)
+    if not os.path.exists(workspace_dir):
+        os.makedirs(workspace_dir)
+    taskgraph_dir = os.path.join(workspace_dir, 'taskgraph_cache')
+    if not os.path.exists(taskgraph_dir):
+        os.makedirs(taskgraph_dir)
+
+    # set up taskgraph to spread out workload and not repeat work
+    n_workers = -1
+    LOGGER.info(f"TaskGraph workers: {n_workers}")
+    graph = taskgraph.TaskGraph(taskgraph_dir, n_workers, reporting_interval=60*5)
+
     # import the soil grid data
-    workspace_dir = os.path.join('data', 'jade_soil_layers')
-    clay_raster_path = os.path.join(workspace_dir, "clay_0-5cm_mean_mar32616.tif")
-    sand_raster_path = os.path.join(workspace_dir, "sand_0-5cm_mean_mar32616.tif")
-    silt_raster_path = os.path.join(workspace_dir, "silt_0-5cm_mean_mar32616.tif")
-    soc_raster_path = os.path.join(workspace_dir, "soc_0-5cm_mean_mar32616.tif")
+    clay_raster_path = os.path.abspath(parsed_args.clay)
+    sand_raster_path = os.path.abspath(parsed_args.sand)
+    silt_raster_path = os.path.abspath(parsed_args.silt)
+    soc_raster_path = os.path.abspath(parsed_args.soc)
 
     ##### A/ Soil erodibility ######
     LOGGER.info("Set up workspace directory")
@@ -218,15 +246,47 @@ if __name__ == "__main__":
 
     LOGGER.info("Calculating DG")
     dg_output_path = os.path.join(output_dir, 'dg-result.tif')
-    calculate_dg(clay_raster_path, sand_raster_path, silt_raster_path, dg_output_path)
+    dg_task = graph.add_task(
+        calculate_dg,
+        kwargs={
+            "clay_path": clay_raster_path,
+            "sand_path": sand_raster_path,
+            "silt_path": silt_raster_path,
+            "dg_output_path": dg_output_path,
+        },
+        target_path_list=[dg_output_path],
+        task_name='Calculate DG'
+    )
 
     LOGGER.info("Calculating Renard K")
     renard_k_factor_path =  os.path.join(output_dir, 'renard-k-factor.tif')
-    calculate_renard_k_factor(dg_output_path, renard_k_factor_path)
+    _ = graph.add_task(
+        calculate_renard_k_factor,
+        kwargs={
+            "dg_path": dg_output_path,
+            "k_factor_output_path": renard_k_factor_path,
+        },
+        target_path_list=[dg_output_path],
+        dependent_task_list=[dg_task],
+        task_name='Calculate Renard K'
+    )
 
     LOGGER.info("Calculating Williams K")
     williams_k_factor_path =  os.path.join(output_dir, 'williams-k-factor.tif')
-    calculate_williams_k_factor(
-        clay_raster_path, sand_raster_path, silt_raster_path, soc_raster_path,
-        williams_k_factor_path)
+    _ = graph.add_task(
+        calculate_williams_k_factor,
+        kwargs={
+            "clay_path": clay_raster_path,
+            "sand_path": sand_raster_path,
+            "silt_path": silt_raster_path,
+            "soc_path": soc_raster_path,
+            "target_path": williams_k_factor_path,
+        },
+        target_path_list=[dg_output_path],
+        task_name='Calculate Williams K'
+    )
 
+    graph.close()
+    graph.join()
+
+    LOGGER.info(f"Soils K factor complete.")
