@@ -44,7 +44,7 @@ srtm-v3-1s.tif.ovr: srtm-v3-1s.tif
 				  -r near -ro srtm-v3-1s.tif
 
 srtm-v3-1s-colorized.tif: srtm-v3-1s.tif
-	$(SETCACHE) gdaldem color-relief -alpha $(GTIFF_CREATE_OPTS) srtm-v3-1s.tif colorprofile.txt $@
+	$(SETCACHE) gdaldem color-relief -alpha $(GTIFF_CREATE_OPTS) srtm-v3-1s.tif $(ROOT_DIR)/colorprofile.txt $@
 
 xyztiles: srtm-v3-1s-colorized.tif
 	$(SETCACHE) gdal2tiles.py --xyz -r near --zoom=1-8 --processes=$(N_WORKERS) srtm-v3-1s-colorized.tif $@
