@@ -271,18 +271,43 @@ if __name__ == "__main__":
         task_name='Calculate Renard K'
     )
 
+    # Align and resize datasets as it appears SOC is of different dimensions.
+    # {(159243, 58034), (159246, 58034)}
+    LOGGER.info("Align and resize soil data.")
+    base_list = [clay_raster_path, sand_raster_path, silt_raster_path,
+            soc_raster_path]
+    for raster_path in base_list:
+        raster_info = pygeoprocessing.get_raster_info(raster_path)
+        LOGGER.info(f"{os.path.basename(raster_path)}:")
+        LOGGER.info(f"Pixel size: {raster_info['pixel_size']}")
+        LOGGER.info(f"Raster size: {raster_info['raster_size']}")
+
+    aligned_list = [f"{os.path.splitext(x)[0]}_aligned.tif" for x in base_list]
+    align_task = task_graph.add_task(
+        func=pygeoprocessing.align_and_resize_raster_stack,
+        args=(
+            base_list, aligned_list, ['bilinear']*len(aligned_list),
+            target_pixel_size, 'intersection'),
+        kwargs={
+            'raster_align_index': 0,
+        },
+        target_path_list=aligned_list,
+        task_name='Align soil input rasters'
+    )
+
     LOGGER.info("Calculating Williams K")
     williams_k_factor_path =  os.path.join(output_dir, 'williams-k-factor.tif')
     _ = graph.add_task(
         calculate_williams_k_factor,
         kwargs={
-            "clay_path": clay_raster_path,
-            "sand_path": sand_raster_path,
-            "silt_path": silt_raster_path,
-            "soc_path": soc_raster_path,
+            "clay_path": aligned_list[0],
+            "sand_path": aligned_list[1],
+            "silt_path": aligned_list[2],
+            "soc_path": aligned_list[3],
             "target_path": williams_k_factor_path,
         },
         target_path_list=[dg_output_path],
+        dependent_task_list=[align_task],
         task_name='Calculate Williams K'
     )
 
