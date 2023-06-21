@@ -283,7 +283,7 @@ if __name__ == "__main__":
         LOGGER.info(f"Raster size: {raster_info['raster_size']}")
 
     aligned_list = [f"{os.path.splitext(x)[0]}_aligned.tif" for x in base_list]
-    align_task = task_graph.add_task(
+    align_task = graph.add_task(
         func=pygeoprocessing.align_and_resize_raster_stack,
         args=(
             base_list, aligned_list, ['bilinear']*len(aligned_list),
