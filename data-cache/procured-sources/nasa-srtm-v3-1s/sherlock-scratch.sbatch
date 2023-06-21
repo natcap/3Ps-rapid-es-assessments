@@ -37,7 +37,7 @@ $scratch_make srtm-v3-1s.tif.ovr
 cp $SCRATCH_DIR/srtm-v3-1s.tif.ovr $TARGET_OAK_DIR &
 
 print_now
-$scratch_make xyztiles
+$scratch_make SETCACHE="singularity run docker://ghcr.io/natcap/devstack@sha256:961c937a55ac8ff99219afeffe0f8509e4f142061cd3302c8133dfbe94574657 --env GDAL_CACHEMAX=2048" xyztiles
 print_now
 cp -rv $SCRATCH_DIR/xyztiles $TARGET_OAK_DIR
 print_now
