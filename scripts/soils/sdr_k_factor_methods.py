@@ -282,12 +282,15 @@ if __name__ == "__main__":
         LOGGER.info(f"Pixel size: {raster_info['pixel_size']}")
         LOGGER.info(f"Raster size: {raster_info['raster_size']}")
 
+    raster_info = pygeoprocessing.get_raster_info(raster_path)
+    target_pixel_size = raster_info['pixel_size']
     aligned_list = [f"{os.path.splitext(x)[0]}_aligned.tif" for x in base_list]
+    # Taking 'union' since SOC is just missing a few rows.
     align_task = graph.add_task(
         func=pygeoprocessing.align_and_resize_raster_stack,
         args=(
             base_list, aligned_list, ['bilinear']*len(aligned_list),
-            target_pixel_size, 'intersection'),
+            target_pixel_size, 'union'),
         kwargs={
             'raster_align_index': 0,
         },
