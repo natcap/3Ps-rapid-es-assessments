@@ -1,4 +1,4 @@
-"""Soil erodibility from ISRIC soilgrids.
+"""Soil erodibility K Factor from ISRIC soilgrids.
 
 Refactored from Jade Delevaux's R script.
 """
@@ -7,9 +7,9 @@ import logging
 import os
 
 import numpy
+from osgeo import gdal
 import pygeoprocessing
 import taskgraph
-from osgeo import gdal
 
 logging.basicConfig(
     level=logging.INFO,
@@ -49,11 +49,9 @@ def calculate_dg(clay_path, sand_path, silt_path, dg_output_path):
     mi_sand = 1.025
     mi_silt = 0.0026
 
-    #expected_nodata = 255
     raster_paths = [clay_path, sand_path, silt_path]
     nodatas = [
         pygeoprocessing.get_raster_info(path)['nodata'][0] for path in raster_paths]
-    #assert nodatas == [expected_nodata]*len(nodatas)
 
     def _calculate_dg(clay, sand, silt):
         dg = numpy.full(clay.shape, NODATA_FLOAT32, dtype=numpy.float32)
@@ -115,7 +113,8 @@ def calculate_renard_k_factor(dg_path, k_factor_output_path):
         k_factor_output_path, internal=False, resample_method='near',
         overwrite=True, levels='auto')
 
-def calculate_williams_k_factor(clay_path, sand_path, silt_path, soc_path, target_path):
+def calculate_williams_k_factor(
+        clay_path, sand_path, silt_path, soc_path, target_path):
     """K-factor derived using Williams (1995) Equation.
 
     Args:
@@ -211,11 +210,13 @@ def calculate_williams_k_factor(clay_path, sand_path, silt_path, soc_path, targe
 if __name__ == "__main__":
     LOGGER.info("Starting script to process K Factor from ISRIC soil grids.")
     parser = argparse.ArgumentParser()
-    parser.add_argument('--workspace', default='soils-k-factor')
-    parser.add_argument('--clay')
-    parser.add_argument('--sand')
-    parser.add_argument('--silt')
-    parser.add_argument('--soc')
+    parser.add_argument(
+        '--workspace', default='soils-k-factor',
+        help='directory to save outputs')
+    parser.add_argument('--clay', help='path to clay raster')
+    parser.add_argument('--sand', help='path to sand raster')
+    parser.add_argument('--silt', help='path to silt raster')
+    parser.add_argument('--soc', help='path to soc raster')
 
     parsed_args = parser.parse_args()
     LOGGER.info(f"Parsed args: {parsed_args}")
@@ -230,7 +231,8 @@ if __name__ == "__main__":
     # set up taskgraph to spread out workload and not repeat work
     n_workers = -1
     LOGGER.info(f"TaskGraph workers: {n_workers}")
-    graph = taskgraph.TaskGraph(taskgraph_dir, n_workers, reporting_interval=60*5)
+    graph = taskgraph.TaskGraph(
+        taskgraph_dir, n_workers, reporting_interval=60*5)
 
     # import the soil grid data
     clay_raster_path = os.path.abspath(parsed_args.clay)

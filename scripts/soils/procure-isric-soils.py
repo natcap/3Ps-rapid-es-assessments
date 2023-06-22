@@ -4,16 +4,16 @@ import hashlib
 import http.client
 import logging
 import os
+import requests
 import shutil
 
 from bs4 import BeautifulSoup
+from osgeo import gdal
+import urllib3.exceptions
 
 import numpy
 import pygeoprocessing
-import requests
 import taskgraph
-import urllib3.exceptions
-from osgeo import gdal
 
 logging.basicConfig(
     level=logging.INFO,
@@ -36,6 +36,22 @@ CHECKSUM_KEY = "checksum.sha256.txt"
 NODATA_FLOAT32 = numpy.finfo(numpy.float32).min
 
 def _get_remote_raster_urls(soil_type, tile_csv_path):
+    """Build up a CSV of all the files to download for a soil type.
+
+    The URLs added include the VRT for the soil type along with all the
+    corresponding tiles. The CSV output will have a column for the URL as well
+    as a column with the checksum for that file.
+
+    Args:
+        soil_type (str) - the soil type to download files for.
+            clay|sand|silt|soc
+        tile_csv_path (str) - path to a CSV file to build up the list of tiles
+            to download. Along with the URL to the file the checksum for that
+            file is also saved in a column.
+
+    Returns:
+        Nothing
+    """
     LOGGER.info(f"Building CSV for {soil_type} tile urls")
 
     # Save VRT to file as first line with corresponding checksum
@@ -102,6 +118,21 @@ def _digest_file(filepath, alg):
 
 
 def fetch_raster(source_raster_url, dest_raster_path, checksum_alg, checksum):
+    """Download a raster file and compare against checksum.
+
+    This function is a python attempt of mimickign `wget`. It attempts to
+    smartly download large files and retry if attempts fail.
+
+    Args:
+        source_raster_url (str) - URL of file to download.
+        dest_raster_path (str) - path on disk to save the download.
+        checksum_alg (str) - the hashing algorithm to use when comparing
+            checksums.
+        checksum (str) - the checksum to validate against.
+
+    Returns:
+        Nothing
+    """
     r = requests.head(source_raster_url)
     target_file_size_bytes = int(r.headers.get('content-length', 0))
     LOGGER.info(f"Downloading {source_raster_url}, "
@@ -146,6 +177,20 @@ def fetch_raster(source_raster_url, dest_raster_path, checksum_alg, checksum):
 
 
 def main():
+    """Download ISRIC soilgrid data.
+
+    The ISRIC soildgrid data is split into many tile directories of which a VRT
+    references. So this script downloads the VRT and tiles, preserving the
+    directory structure of the tiles relative to the VRT.
+
+        # Save tiles in similar ISRIC directory structure:
+        # sand_0-5cm_mean/
+        #      sand_0-5cm_mean.vrt
+        #      sand_0-5cm_mean/
+        #           tile_dir_1/
+        #           tile_dir_2/
+        #      ...
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument('--cache-dir', default='downloads')
     parser.add_argument('--soil-type',
@@ -160,9 +205,6 @@ def main():
     taskgraph_dir = os.path.join(cache_dir, 'taskgraph_cache')
     if not os.path.exists(taskgraph_dir):
         os.makedirs(taskgraph_dir)
-
-    # TODO check cache-dir to avoid reruns
-    #LOGGER.info(f"Looking for existing Erodibility rasters in {cache_dir}")
 
     # set up taskgraph to spread out workload and not repeat work
     n_workers = 6
@@ -201,20 +243,11 @@ def main():
 
     # 2. Download the soil rasters and do checksum
     for soil_type, soil_tiles_csv_path in soil_tiles_csv_lookup.items():
-        # Save tiles in similar ISRIC directory structure:
-        # sand_0-5cm_mean/
-        #      sand_0-5cm_mean.vrt
-        #      sand_0-5cm_mean/
-        #           tile_dir_1/
-        #           tile_dir_2/
-        #      ...
         soil_dir = os.path.join(cache_dir, soil_type)
         soil_tiles_dir = os.path.join(soil_dir, ISRIC_SOILGRIDS_TYPES[soil_type])
         if not os.path.isdir(soil_tiles_dir):
             os.mkdir(soil_tiles_dir)
 
-        download_task_list = []
-        #only_download_n = 10
         with open(soil_tiles_csv_path, 'r') as csv_fp:
             reader = csv.reader(csv_fp)
             for row in reader:
@@ -223,11 +256,13 @@ def main():
 
                 raster_tile_basename = os.path.basename(raster_tile_url)
                 vrt_check = os.path.splitext(raster_tile_basename)[1]
+                # if downloading the VRT save at the top level directory
                 if  vrt_check == '.vrt':
                     raster_tile_out_path = os.path.join(soil_dir, raster_tile_basename)
                 else:
                     raster_tile_dir = os.path.basename(os.path.dirname(raster_tile_url))
                     raster_tile_out_dir = os.path.join(soil_tiles_dir, raster_tile_dir)
+                    # make the tile directory if it doesn't exist
                     if not os.path.isdir(raster_tile_out_dir):
                         os.mkdir(raster_tile_out_dir)
 
@@ -245,11 +280,6 @@ def main():
                     target_path_list=[raster_tile_out_path],
                     task_name=f'Download raster tile {raster_tile_basename}.'
                 )
-                download_task_list.append(download_task)
-
-                #if len(download_task_list) >= only_download_n:
-                #    break
-
 
     graph.close()
     graph.join()

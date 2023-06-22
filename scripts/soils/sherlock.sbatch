@@ -8,4 +8,5 @@
 #SBATCH --partition=hns,normal
 #SBATCH --job-name="Procure-ISRIC_SoilGRIDS"
 
-singularity run docker://ghcr.io/natcap/devstack:latest python procure-isric-soils.py --cache-dir=$SCRATCH/ddenu/soils --soil-type=${1}
+# ${1} required command line input of either "clay", "sand", "silt", "soc"
+singularity run docker://ghcr.io/natcap/devstack:latest python procure-isric-soils.py --cache-dir=$SCRATCH/soils --soil-type=${1}
