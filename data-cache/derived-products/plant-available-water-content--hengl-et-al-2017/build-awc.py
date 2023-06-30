@@ -31,7 +31,8 @@ def calculate_awc(
         soil_depth_60cm_path,
         soil_depth_100cm_path,
         soil_depth_200cm_path,
-        target_awc_path):
+        target_awc_path,
+        n_workers=1):
     rasters = [
         soil_depth_0cm_path,
         soil_depth_5cm_path,
@@ -96,10 +97,16 @@ def calculate_awc(
         'TILED=YES', 'BIGTIFF=YES', 'COMPRESS=LZW',
         'BLOCKXSIZE=256', 'BLOCKYSIZE=256', 'PREDICTOR=1', 'NUM_THREADS=4'))
     raster_paths = [(path, 1) for path in rasters]
-    pygeoprocessing.geoprocessing.raster_calculator(
-        raster_paths, _calculate, target_awc_path,
-        gdal.GDT_Float32, float(NODATA_FLOAT32),
-        raster_driver_creation_tuple=driver_opts)
+    if n_workers == 1:
+        pygeoprocessing.geoprocessing.raster_calculator(
+            raster_paths, _calculate, target_awc_path,
+            gdal.GDT_Float32, float(NODATA_FLOAT32),
+            raster_driver_creation_tuple=driver_opts)
+    else:
+        pygeoprocessing.multiprocessing.raster_calculator(
+            raster_paths, _calculate, target_awc_path, gdal.GDT_Float32,
+            float(NODATA_FLOAT32), n_workers=n_workers,
+            raster_Driver_creation_tuple=driver_opts)
 
     pygeoprocessing.geoprocessing.build_overviews(
         target_awc_path, internal=False, resample_method='near',
@@ -109,6 +116,7 @@ def calculate_awc(
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--cache-dir', default='downloads')
+    parser.add_argument('--n_workers', default=1)
     parser.add_argument('target_awc')
 
     parsed_args = parser.parse_args()
@@ -139,7 +147,8 @@ def main():
             f"Missing files:\n{missing_files}")
 
     LOGGER.info(f"Calculating AWC to {parsed_args.target_awc}")
-    calculate_awc(*local_soil_rasters, parsed_args.target_awc)
+    calculate_awc(*local_soil_rasters, parsed_args.target_awc,
+                  n_workers=parsed_args.n_workers)
 
     LOGGER.info(f"AWC complete; written to {parsed_args.target_awc}")
 
