@@ -92,8 +92,7 @@ def calculate_renard_k_factor(dg_path, k_factor_output_path):
 
     def k_factor(dg):
         k_factor = numpy.full(dg.shape, NODATA_FLOAT32, dtype=numpy.float32)
-        valid_mask = numpy.ones(dg.shape, dtype=bool)
-        valid_mask &= (dg != nodata)
+        valid_mask = (dg != nodata)
 
         # calculate k-factor using Renard et al. (1997)
         k_factor[valid_mask] = (
