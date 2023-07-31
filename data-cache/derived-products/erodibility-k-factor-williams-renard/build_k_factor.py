@@ -1,6 +1,13 @@
 """Soil erodibility K Factor from ISRIC soilgrids.
 
 Refactored from Jade Delevaux's R script.
+
+References:
+
+Renard, K., Foster, G., Weesies, G., McCool, D., Yoder, D., 1997.
+Predicting Soil Erosion by Water: A Guide to Conservation Planning With the
+Revised Universal Soil Loss Equation (RUSLE). U.S. Department of Agriculture,
+Agriculture Handbook No. 703.
 """
 import argparse
 import logging
