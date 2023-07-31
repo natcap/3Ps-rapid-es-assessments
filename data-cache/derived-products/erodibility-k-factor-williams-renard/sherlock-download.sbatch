@@ -9,4 +9,4 @@
 #SBATCH --job-name="Procure-ISRIC_SoilGRIDS"
 
 # ${1} required command line input of either "clay", "sand", "silt", "soc"
-singularity run docker://ghcr.io/natcap/devstack:latest python procure-isric-soils.py --cache-dir=$SCRATCH/soils --soil-type=${1}
+singularity run docker://ghcr.io/natcap/devstack:2023-06-21 python procure-isric-soils.py --cache-dir=$SCRATCH/soils --soil-type=${1}
