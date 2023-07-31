@@ -41,8 +41,6 @@ def calculate_dg(clay_path, sand_path, silt_path, dg_output_path):
     The mi values for each soil particle class are:
         for clay 0.0010 mm, for silt 0.0026 mm and for sand 1.025 mm.
 
-    1/ K-factor was derived using Renard et al. (1997) Equation #####
-
     Args:
         clay_path (string): path to the clay soils raster.
         sand_path (string): path to the sand soils raster.
@@ -77,7 +75,7 @@ def calculate_dg(clay_path, sand_path, silt_path, dg_output_path):
 
     driver_opts = ('GTIFF', (
         'TILED=YES', 'BIGTIFF=YES', 'COMPRESS=LZW', 'BLOCKXSIZE=256',
-        'BLOCKYSIZE=256', 'PREDICTOR=1', 'NUM_THREADS=4'))
+        'BLOCKYSIZE=256', 'PREDICTOR=3', 'NUM_THREADS=4'))
     raster_path_band = [(path, 1) for path in raster_paths]
     pygeoprocessing.geoprocessing.raster_calculator(
         raster_path_band, _calculate_dg, dg_output_path,
@@ -109,7 +107,7 @@ def calculate_renard_k_factor(dg_path, k_factor_output_path):
 
     driver_opts = ('GTIFF', (
         'TILED=YES', 'BIGTIFF=YES', 'COMPRESS=LZW', 'BLOCKXSIZE=256',
-        'BLOCKYSIZE=256', 'PREDICTOR=1', 'NUM_THREADS=4'))
+        'BLOCKYSIZE=256', 'PREDICTOR=3', 'NUM_THREADS=4'))
     pygeoprocessing.geoprocessing.raster_calculator(
         [(dg_path, 1)], k_factor, k_factor_output_path,
         gdal.GDT_Float32, float(NODATA_FLOAT32),
@@ -202,7 +200,7 @@ def calculate_williams_k_factor(
     raster_path_band = [(path, 1) for path in raster_paths]
     driver_opts = ('GTIFF', (
         'TILED=YES', 'BIGTIFF=YES', 'COMPRESS=LZW', 'BLOCKXSIZE=256',
-        'BLOCKYSIZE=256', 'PREDICTOR=1', 'NUM_THREADS=4'))
+        'BLOCKYSIZE=256', 'PREDICTOR=3', 'NUM_THREADS=4'))
     pygeoprocessing.geoprocessing.raster_calculator(
         raster_path_band, _calculate_k_williams, target_path,
         gdal.GDT_Float32, float(NODATA_FLOAT32),
