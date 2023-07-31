@@ -120,7 +120,7 @@ def _digest_file(filepath, alg):
 def fetch_raster(source_raster_url, dest_raster_path, checksum_alg, checksum):
     """Download a raster file and compare against checksum.
 
-    This function is a python attempt of mimickign `wget`. It attempts to
+    This function is a python attempt of mimicking `wget`. It attempts to
     smartly download large files and retry if attempts fail.
 
     Args:
