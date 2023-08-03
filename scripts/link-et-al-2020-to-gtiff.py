@@ -11,6 +11,8 @@ Usage example:
     python link-et-al-2020-to-gtiff.py --dataset=./data --target=central-australia.tif --mode=grid 16653
 
 See link-et-al-2020-to-gtiff.py --help for more information about parameters.
+
+Paper is available at: https://essd.copernicus.org/articles/12/1897/2020/essd-12-1897-2020.pdf
 """
 import argparse
 import logging
