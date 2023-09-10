@@ -14,8 +14,34 @@ See link-et-al-2020-to-gtiff.py --help for more information about parameters.
 
 Paper is available at: https://essd.copernicus.org/articles/12/1897/2020/essd-12-1897-2020.pdf
 
-The full dataset (including monthly layers, 69GB in size) can be downloaded from:
+The full dataset (69GB in size) can be downloaded from:
     https://hs.pangaea.de/model/WAM-2layers/Link-etal_2019/Dataset.zip
+
+Annual datasets (about 20.1 GB each) can be downloaded from:
+    2018: https://hs.pangaea.de/model/WAM-2layers/Link-etal_2019/Inter-annual/2018.zip
+    2017: https://hs.pangaea.de/model/WAM-2layers/Link-etal_2019/Inter-annual/2017.zip
+    2016: https://hs.pangaea.de/model/WAM-2layers/Link-etal_2019/Inter-annual/2016.zip
+    2015: https://hs.pangaea.de/model/WAM-2layers/Link-etal_2019/Inter-annual/2015.zip
+    2014: https://hs.pangaea.de/model/WAM-2layers/Link-etal_2019/Inter-annual/2014.zip
+    2013: https://hs.pangaea.de/model/WAM-2layers/Link-etal_2019/Inter-annual/2013.zip
+    2012: https://hs.pangaea.de/model/WAM-2layers/Link-etal_2019/Inter-annual/2012.zip
+    2011: https://hs.pangaea.de/model/WAM-2layers/Link-etal_2019/Inter-annual/2011.zip
+    2010: https://hs.pangaea.de/model/WAM-2layers/Link-etal_2019/Inter-annual/2010.zip
+    2009: https://hs.pangaea.de/model/WAM-2layers/Link-etal_2019/Inter-annual/2009.zip
+    2008: https://hs.pangaea.de/model/WAM-2layers/Link-etal_2019/Inter-annual/2008.zip
+    2007: https://hs.pangaea.de/model/WAM-2layers/Link-etal_2019/Inter-annual/2007.zip
+    2006: https://hs.pangaea.de/model/WAM-2layers/Link-etal_2019/Inter-annual/2006.zip
+    2005: https://hs.pangaea.de/model/WAM-2layers/Link-etal_2019/Inter-annual/2005.zip
+    2004: https://hs.pangaea.de/model/WAM-2layers/Link-etal_2019/Inter-annual/2004.zip
+    2003: https://hs.pangaea.de/model/WAM-2layers/Link-etal_2019/Inter-annual/2003.zip
+    2002: https://hs.pangaea.de/model/WAM-2layers/Link-etal_2019/Inter-annual/2002.zip
+    2001: https://hs.pangaea.de/model/WAM-2layers/Link-etal_2019/Inter-annual/2001.zip
+
+This tool expects that the dataset is arranged like so:
+    Dataset/      <---- This is the directory you provide as --dataset
+        2014/     <---- A year we want to extract data from
+        Matrices/
+        etc.
 """
 import argparse
 import calendar
@@ -208,24 +234,31 @@ def main():
     raster.SetProjection(wgs84_srs.ExportToWkt())
     raster = None
 
+    # TODO: provide as "basin:2257950" or "grid:<num>"
+    considered_cells_array_path = os.path.join(
+        parsed_args.dataset, 'Further Data', 'considered_cells.npy')
+    basin_ids_array_path = os.path.join(
+        parsed_args.dataset, 'Further Data', 'Basin_IDs.npy')
     if len(parsed_args.ID) == 1:
-        if os.path.exists(parsed_args.ID):
+        if os.path.exists(parsed_args.ID[0]):
             if parsed_args.mode == 'basin':
                 parser.error(
                     "The basin mode cannot be used with an AOI. "
                     "You must provide a basin ID instead.")
             raw_ids = _convert_aoi_to_cell_index(
-                parsed_args.ID, sample_raster_path)
+                parsed_args.ID[0], sample_raster_path)
         else:
-            raw_ids = int(parsed_args.ID)
+            if parsed_args.ID[0].startswith('basin:'):
+                basin_ids = parsed_args.ID[0].replace('basin:', '').split(',')
+                raw_ids = convert_vector_basin_ids_to_internal(
+                    basin_ids_array_path, basin_ids)
+                print(raw_ids)
+            else:
+                raw_ids = int(parsed_args.ID)
     else:
         raw_ids = [int(i) for i in parsed_args.ID]
 
-    considered_cells_array_path = os.path.join(
-        parsed_args.dataset, 'Further Data', 'considered_cells.npy')
     if parsed_args.mode == 'basin':
-        basin_ids_array_path = os.path.join(
-            parsed_args.dataset, 'Further Data', 'Basin_IDs.npy')
         source_ids = convert_vector_basin_ids_to_internal(
             basin_ids_array_path, raw_ids)
         et0_array_path = os.path.join(
@@ -240,20 +273,21 @@ def main():
             'Land_cell_to_grid(Era_Int_2001_2018)',
             'Era_Int_2001_2018_matrix_yr.npy')
     elif parsed_args.mode.startswith('yearly'):
-        year = int(parsed_args.mode.replace('yearly-'))
+        year = parsed_args.mode.replace('yearly-', '')
         source_ids = convert_cell_index_to_internal(
             considered_cells_array_path, raw_ids)
         et0_array_path = os.path.join(
-            parsed_args.dataset, 'Years', year, '.npy')
+            parsed_args.dataset, year,
+            f'Era_Int_{year}_matrix_yr.npy')
     elif parsed_args.mode.startswith('monthly'):
         source_ids = convert_cell_index_to_internal(
             considered_cells_array_path, raw_ids)
-        year_month = parsed_args.mode.replace('monthly-')
+        year_month = parsed_args.mode.replace('monthly-', '')
         year, month = year_month.split('-')
-        year = int(year)
-        month_name = calendar.month_name[int(month)]
+        month_name = calendar.month_name[int(month)][0:3]
         et0_array_path = os.path.join(
-            parsed_args._dataset, 'Years', year, f'{month_name}.npy')
+            parsed_args._dataset, year,
+            f'Era_Int_{year}_matrix_{month_name}.npy')
     else:
         parser.exit(f'Could not recognize mode {parsed_args.mode}', 1)
 
