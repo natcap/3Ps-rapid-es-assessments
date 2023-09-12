@@ -103,6 +103,8 @@ def calculate_renard_k_factor(dg_path, k_factor_output_path):
         k_factor[valid_mask] = (
             7.594 * (0.0034 + (0.0405 * numpy.exp(-0.5 *
                         ((numpy.log(dg[valid_mask]) + 1.659) / 0.7101)**2))))
+        # convert from US to metric using 0.1317
+        k_factor[valid_mask] = k_factor[valid_mask] * 0.1317
         return k_factor
 
     driver_opts = ('GTIFF', (
@@ -195,6 +197,8 @@ def calculate_williams_k_factor(
         k_factor_result[valid_mask] = (
             fclsa[valid_mask] * fclsi[valid_mask] * forgc[valid_mask] *
             fsand[valid_mask])
+        # convert from US to metric using 0.1317
+        k_factor_result[valid_mask] = k_factor_result[valid_mask] * 0.1317
         return k_factor_result
 
     raster_path_band = [(path, 1) for path in raster_paths]
