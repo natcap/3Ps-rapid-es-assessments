@@ -126,7 +126,7 @@ def lulc_transition_matrix(
     transition_str_dict = {}
     transition_index = 1
     unchanged_value = 0
-    transition_class_key = {0: "unchanged"}
+    transition_class_key = {0: {"description": "unchanged", "from": "", "to": ""}}
 
     # Info needed for logging progress
     n_cols, n_rows = from_raster_info['raster_size']
@@ -183,9 +183,9 @@ def lulc_transition_matrix(
 
                 # If transition does not change, use "same" code
                 code_to_use = unchanged_value
+                transition_str_key = f'{from_raster_value} to {to_raster_value}'
                 if from_raster_value != to_raster_value:
                     code_to_use = transition_index
-                    transition_str_key = f'{from_raster_value} to {to_raster_value}'
                     if transition_str_key not in transition_str_dict:
                         transition_str_dict[transition_str_key] = code_to_use
                         transition_index += 1
@@ -193,7 +193,9 @@ def lulc_transition_matrix(
                         code_to_use = transition_str_dict[transition_str_key]
 
                 if code_to_use not in transition_class_key:
-                    transition_class_key[code_to_use] = f'{from_raster_value} to {to_raster_value}'
+                    transition_class_key[code_to_use] = {
+                        "description": transition_str_key,
+                        "from": from_raster_value, "to": to_raster_value}
                 transition_array[row_index, col_index] = code_to_use
 
         transition_array[nodata_mask] = _TARGET_NODATA_INT
@@ -234,12 +236,15 @@ def lulc_transition_matrix(
     # Write out raster table transitions to CSV
     with open(raster_csv_path, 'w', newline='') as csv_file:
         writer = csv.writer(csv_file)
-        header = ["Transition Class", "Transition"]
+        header = ["transition class", "transition", "from", "to"]
         writer.writerow(header)
-        nodata_row = ["-1 (nodata)", "nodata to nodata"]
+        nodata_row = ["-1 (nodata)", "nodata to nodata", from_nodata, to_nodata]
         writer.writerow(nodata_row)
-        for class_key, transition_op in transition_class_key.items():
-            row_to_write = [class_key, transition_op]
+        for class_key, transition_info in transition_class_key.items():
+            row_to_write = [
+                class_key, transition_info['description'],
+                transition_info['from'], transition_info['to']]
+
             writer.writerow(row_to_write)
 
 
