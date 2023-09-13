@@ -13,8 +13,38 @@ Usage example:
 See link-et-al-2020-to-gtiff.py --help for more information about parameters.
 
 Paper is available at: https://essd.copernicus.org/articles/12/1897/2020/essd-12-1897-2020.pdf
+
+The full dataset (69GB in size) can be downloaded from:
+    https://hs.pangaea.de/model/WAM-2layers/Link-etal_2019/Dataset.zip
+
+Annual datasets (about 20.1 GB each) can be downloaded from:
+    2018: https://hs.pangaea.de/model/WAM-2layers/Link-etal_2019/Inter-annual/2018.zip
+    2017: https://hs.pangaea.de/model/WAM-2layers/Link-etal_2019/Inter-annual/2017.zip
+    2016: https://hs.pangaea.de/model/WAM-2layers/Link-etal_2019/Inter-annual/2016.zip
+    2015: https://hs.pangaea.de/model/WAM-2layers/Link-etal_2019/Inter-annual/2015.zip
+    2014: https://hs.pangaea.de/model/WAM-2layers/Link-etal_2019/Inter-annual/2014.zip
+    2013: https://hs.pangaea.de/model/WAM-2layers/Link-etal_2019/Inter-annual/2013.zip
+    2012: https://hs.pangaea.de/model/WAM-2layers/Link-etal_2019/Inter-annual/2012.zip
+    2011: https://hs.pangaea.de/model/WAM-2layers/Link-etal_2019/Inter-annual/2011.zip
+    2010: https://hs.pangaea.de/model/WAM-2layers/Link-etal_2019/Inter-annual/2010.zip
+    2009: https://hs.pangaea.de/model/WAM-2layers/Link-etal_2019/Inter-annual/2009.zip
+    2008: https://hs.pangaea.de/model/WAM-2layers/Link-etal_2019/Inter-annual/2008.zip
+    2007: https://hs.pangaea.de/model/WAM-2layers/Link-etal_2019/Inter-annual/2007.zip
+    2006: https://hs.pangaea.de/model/WAM-2layers/Link-etal_2019/Inter-annual/2006.zip
+    2005: https://hs.pangaea.de/model/WAM-2layers/Link-etal_2019/Inter-annual/2005.zip
+    2004: https://hs.pangaea.de/model/WAM-2layers/Link-etal_2019/Inter-annual/2004.zip
+    2003: https://hs.pangaea.de/model/WAM-2layers/Link-etal_2019/Inter-annual/2003.zip
+    2002: https://hs.pangaea.de/model/WAM-2layers/Link-etal_2019/Inter-annual/2002.zip
+    2001: https://hs.pangaea.de/model/WAM-2layers/Link-etal_2019/Inter-annual/2001.zip
+
+This tool expects that the dataset is arranged like so:
+    Dataset/      <---- This is the directory you provide as --dataset
+        2014/     <---- A year we want to extract data from
+        Matrices/
+        etc.
 """
 import argparse
+import calendar
 import logging
 import os
 
@@ -57,8 +87,8 @@ def run(ids, et0_array_path, target_raster_path):
     """
     raster = gdal.Open(target_raster_path, gdal.GA_Update)
     band = raster.GetRasterBand(1)
-    target_array = numpy.full((raster.RasterYSize, raster.RasterXSize), TARGET_NODATA,
-                              dtype=numpy.float32)
+    target_array = numpy.full((raster.RasterYSize, raster.RasterXSize),
+                              TARGET_NODATA, dtype=numpy.float32)
     _, n_cols = target_array.shape
     source_evaporation_data = numpy.load(et0_array_path)
     for source_id in ids:
@@ -121,6 +151,48 @@ def convert_cell_index_to_internal(array_location, cell_indexes):
     return converted_indexes
 
 
+def _convert_aoi_to_cell_index(aoi_path, sample_raster_path):
+    """Convert an AOI to cell indices.
+
+    Args:
+        aoi_path (str): The path to an AOI vector.  The 1st layer of this
+            vector will be rasterized and used to determine whether a pixel
+            intersects the aoi.
+        sample_raster_path (str): The path to the sample raster, distributed
+            with the Link et al dataset.
+
+    Returns:
+        A set of flat cell indices.
+    """
+    source_raster_info = pygeoprocessing.get_raster_info(sample_raster_path)
+    cols, rows = source_raster_info['raster_size']
+
+    # Our sample raster is small, so OK to do everything in memory here.
+    driver = gdal.GetDriverByName('MEM')
+    new_raster = driver.Create('', cols, rows, 1, gdal.GDT_Byte)
+    new_raster.SetProjection(source_raster_info['projection_wkt'])
+    new_raster.SetGeoTransform(source_raster_info['geotransform'])
+
+    aoi_vector = gdal.OpenEx(aoi_path)
+    aoi_layer = aoi_vector.GetLayer()
+    gdal.RasterizeLayer(new_raster, [1], aoi_layer, burn_values=[1])
+
+    new_band = new_raster.GetRasterBand(1)
+    raster_array = new_band.ReadAsArray()
+    ids = set()
+    for col in range(cols):
+        for row in range(rows):
+            if raster_array[row, col] == 1:
+                flat_index = (row * cols) + col
+                ids.add(flat_index)
+
+    aoi_layer = None
+    aoi_vector = None
+    new_band = None
+    new_raster = None
+    return ids
+
+
 def main():
     parser = argparse.ArgumentParser(
         os.path.basename(__file__), description=(
@@ -134,12 +206,20 @@ def main():
             "The name of the file to write out, ending in '.tif'"))
     parser.add_argument(
         '--mode', default="basin", help=(
-            "Either 'basin' or 'grid'.  Whether the source area is a basin or "
-            "a grid cell."))
+            "One of 'basin', 'grid', 'yearly-YYYY' or 'monthly-YYYY-MM'. "
+            "If 'basin', the IDs provided must be basin IDs. "
+            "Otherwise, the IDs provided must be grid cell IDs. "
+            "If 'yearly-YYYY' or 'monthly-YYYY-MM', replace YYYY with the "
+            "year of interest, and MM with the month of interest.  For "
+            "Example: 'yearly-2014' or 'monthly-2014-05'."))
     parser.add_argument('ID', nargs='+', help=(
         "The ID of the basin or grid cell (depending on your mode option) "
-        "of the source area."), type=int)
+        "of the source area, or an AOI vector."))
     parsed_args = parser.parse_args()
+
+    # TODO: function to translate AOI to grid/basin IDs
+    # TODO: should I keep the basin AND the grid IDs?
+
 
     # Create the target raster and set the SRS to WGS84.  The ASCII sample
     # raster doesn't have a spatial reference.
@@ -154,14 +234,31 @@ def main():
     raster.SetProjection(wgs84_srs.ExportToWkt())
     raster = None
 
+    # TODO: provide as "basin:2257950" or "grid:<num>"
+    considered_cells_array_path = os.path.join(
+        parsed_args.dataset, 'Further Data', 'considered_cells.npy')
+    basin_ids_array_path = os.path.join(
+        parsed_args.dataset, 'Further Data', 'Basin_IDs.npy')
     if len(parsed_args.ID) == 1:
-        raw_ids = parsed_args.ID
+        if os.path.exists(parsed_args.ID[0]):
+            if parsed_args.mode == 'basin':
+                parser.error(
+                    "The basin mode cannot be used with an AOI. "
+                    "You must provide a basin ID instead.")
+            raw_ids = _convert_aoi_to_cell_index(
+                parsed_args.ID[0], sample_raster_path)
+        else:
+            if parsed_args.ID[0].startswith('basin:'):
+                basin_ids = parsed_args.ID[0].replace('basin:', '').split(',')
+                raw_ids = convert_vector_basin_ids_to_internal(
+                    basin_ids_array_path, basin_ids)
+                print(raw_ids)
+            else:
+                raw_ids = int(parsed_args.ID)
     else:
-        raw_ids = list(parsed_args.ID)
+        raw_ids = [int(i) for i in parsed_args.ID]
 
     if parsed_args.mode == 'basin':
-        basin_ids_array_path = os.path.join(
-            parsed_args.dataset, 'Further Data', 'Basin_IDs.npy')
         source_ids = convert_vector_basin_ids_to_internal(
             basin_ids_array_path, raw_ids)
         et0_array_path = os.path.join(
@@ -169,14 +266,28 @@ def main():
             'Basin_to_grid(Era_Int_2001_2018)',
             'Basin_to_Grid_2001_2018_yr(Era_Int).npy')
     elif parsed_args.mode == 'grid':
-        considered_cells_array_path = os.path.join(
-            parsed_args.dataset, 'Further Data', 'considered_cells.npy')
         source_ids = convert_cell_index_to_internal(
             considered_cells_array_path, raw_ids)
         et0_array_path = os.path.join(
             parsed_args.dataset, 'Matrices',
             'Land_cell_to_grid(Era_Int_2001_2018)',
             'Era_Int_2001_2018_matrix_yr.npy')
+    elif parsed_args.mode.startswith('yearly'):
+        year = parsed_args.mode.replace('yearly-', '')
+        source_ids = convert_cell_index_to_internal(
+            considered_cells_array_path, raw_ids)
+        et0_array_path = os.path.join(
+            parsed_args.dataset, year,
+            f'Era_Int_{year}_matrix_yr.npy')
+    elif parsed_args.mode.startswith('monthly'):
+        source_ids = convert_cell_index_to_internal(
+            considered_cells_array_path, raw_ids)
+        year_month = parsed_args.mode.replace('monthly-', '')
+        year, month = year_month.split('-')
+        month_name = calendar.month_name[int(month)][0:3]
+        et0_array_path = os.path.join(
+            parsed_args._dataset, year,
+            f'Era_Int_{year}_matrix_{month_name}.npy')
     else:
         parser.exit(f'Could not recognize mode {parsed_args.mode}', 1)
 
