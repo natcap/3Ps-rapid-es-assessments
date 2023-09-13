@@ -23,10 +23,14 @@ creates the following three outputs:
 
 3. **Transition raster table** (CSV)
 
-    an accompanying table to the transition raster that has two columns,
-    "Transition Class" and "Transition".  "Transition Class" indicates the new
-    class given the unique transition which is described in the "Transition"
-    column.
+    an accompanying table to the transition raster that has four columns,
+    "transition class", "transition", "from", "to".
+
+    - "transition class" - the new class given to the transition, matching the
+        raster output.
+    - "transition" - a description of the transition.
+    - "from" - from lulc raster code for the transition.
+    - "to" - to lulc raster code for the transition.
 
 ## Dependencies and installation
 This scripts relies on the following libraries:
