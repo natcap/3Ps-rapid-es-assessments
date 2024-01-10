@@ -52,10 +52,16 @@ def main(args=None) -> Dict[str, str]:
     'The threshold flow accumulation, in the format start:stop:step. For '
     'example, "1000:5000:150"'))
 @click.option('--workspace', default='preprocess-dem-workspace')
-@click.option('--routing_method', default='d8')
-@click.option('--resample_method', default='near')
-@click.option('--target_epsg', default=None)
-@click.option('--pixel_size', default=None)
+@click.option('--routing_method', default='d8', help="Either D8 or MFD")
+@click.option('--resample_method', default='near',
+              help="A valid GDAL resample method string.")
+@click.option('--target_epsg', default=None, help=(
+    "The target EPSG code. If not provided, the AOI's projection "
+    "will be used."))
+@click.option('--pixel_size', default=None, help=(
+    "The pixel size of the output raster.  If not provided and the target "
+    "projection is in meters, the output raster will have the pixel size of "
+    "the center latitude of the bounding box."))
 def preprocess_dem(
         dem: str,
         aoi: str,
@@ -66,7 +72,23 @@ def preprocess_dem(
         resample_method: Optional[str] = 'near',
         target_epsg: Optional[Union[str, int]] = None
         ) -> None:
-    """"""
+    """Preprocess a DEM.
+
+    Args:
+        dem: The DEM to use.  Currently only supports SRTM.
+        aoi: The path to an AOI vector to use on disk.
+        tfa: The threshold flow accumulation value in the form
+            'start:stop:step'
+        workspace: The output workspace directory.
+        pixel_size: The target pixel size in projected units.  A list of 2
+            floats or a string in the format '30,30'
+        routing_method: Either D8 or MFD
+        resample_method: A valid GDAL resample method string
+        target_epsg: A string or int EPSG code.
+
+    Returns:
+        ``None``
+    """
     workspace = os.path.normcase(os.path.normpath(workspace))
     if not os.path.exists(workspace):
         os.makedirs(workspace)
