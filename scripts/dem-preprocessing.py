@@ -21,7 +21,7 @@ URL_BASE = 'https://storage.googleapis.com/gef-ckan-public-data'
 # Keys are known aliases, values are the path to the layer relative to URL_BASE
 # above.
 KNOWN_DEMS = {
-    'SRTM': 'srtm-v3-1s/srtm-v3-1s.tif',
+    'SRTM': f'{URL_BASE}/srtm-v3-1s/srtm-v3-1s.tif',
 }
 
 WGS84_SRS = osr.SpatialReference()
@@ -31,7 +31,14 @@ WGS84_SRS_WKT = WGS84_SRS.ExportToWkt()
 
 def main(args=None) -> Dict[str, str]:
     # parse args
-    pass
+    return {
+        'source_dem_slug': 'SRTM',
+        'source_aoi_path': sys.argv[1],
+        'tfa_slice': '1000:10000:200',
+        'workspace': 'bay_area_workspace',
+        'pixel_size': [30, 30],
+        'resample_method': 'bilinear',
+    }
 
 
 # TODO: add typehint-sensitive docstring
@@ -41,42 +48,54 @@ def preprocess_dem(
         source_aoi_path: str,
         tfa_slice: str,
         workspace: str,
-        pixel_size: List[float, float],
+        pixel_size: List[float],
         routing_method: str = 'D8',
         resample_method: Optional[str] = 'near',
         target_epsg: Optional[Union[str, int]] = None
         ) -> None:
     """"""
     workspace = os.path.normcase(os.path.normpath(workspace))
+    if not os.path.exists(workspace):
+        os.makedirs(workspace)
     LOGGER.info(f"Writing output files to {workspace}")
 
     vector_info = pygeoprocessing.get_vector_info(source_aoi_path)
 
+    target_srs = osr.SpatialReference()
     if target_epsg is not None:
-        target_srs = osr.SpatialReference()
+        LOGGER.info(f"Output will use user-defined EPSG code {target_epsg}")
         target_srs.ImportFromEPSG(int(target_epsg))
         target_srs_wkt = target_srs.ExportToWkt()
     else:
         target_srs_wkt = vector_info['projection_wkt']
+        target_srs.ImportFromWkt(target_srs_wkt)
+        target_epsg = target_srs.GetAttrValue('AUTHORITY', 1)
+        LOGGER.info(
+            "Output will use the AOI vector's projection, "
+            f"EPSG: {target_epsg}")
 
     # Get the target bounding box in WGS84 coordinates for the VRT.
+    LOGGER.info("Transforming the AOI bbox to WGS84")
     wgs84_bbox = pygeoprocessing.transform_bounding_box(
         vector_info['bounding_box'], vector_info['projection_wkt'],
         WGS84_SRS_WKT)
 
+    LOGGER.info("Transforming the WGS84 bbox to the target EPSG")
     target_bbox = pygeoprocessing.transform_bounding_box(
-        vector_info['bounding_box'], WGS84_SRS_WKT, target_srs_wkt)
+        wgs84_bbox, WGS84_SRS_WKT, target_srs_wkt)
 
     # Build a VRT for use in pygeoprocessing's warp_raster.  A VRT isn't
     # strictly required, but it's easier to use pygeoprocessing's warp_raster
     # (which requires a local file) than calling gdal.Warp with options.
+    LOGGER.info("Building a VRT for the clipped bounds")
     source_url = KNOWN_DEMS[source_dem_slug]
     vrt_options = gdal.BuildVRTOptions(outputBounds=wgs84_bbox)
     vrt_path = os.path.join(workspace, f'wgs84-{source_dem_slug}.vrt')
     gdal.BuildVRT(vrt_path, [f'/vsicurl/{source_url}'], options=vrt_options)
 
     # Warp to the target projection
-    LOGGER.info(f"Warping {source_dem_slug} to local projection")
+    LOGGER.info(f"Warping {source_dem_slug} to local projection with "
+                f"{resample_method}")
     warped_raster = os.path.join(workspace, f'warped-{source_dem_slug}.tif')
     pygeoprocessing.warp_raster(
         vrt_path, pixel_size, warped_raster, resample_method,
@@ -91,7 +110,7 @@ def preprocess_dem(
     if routing_method == 'd8':
         flow_dir_func = pygeoprocessing.routing.flow_dir_d8
         flow_accum_func = pygeoprocessing.routing.flow_accumulation_d8
-    if routing_method == 'mfd':
+    elif routing_method == 'mfd':
         flow_dir_func = pygeoprocessing.routing.flow_dir_mfd
         flow_accum_func = pygeoprocessing.routing.flow_accumulation_mfd
     else:
