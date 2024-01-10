@@ -1,7 +1,7 @@
 """DEM preprocessing script.  Details TBD."""
 
-import argparse
 import logging
+import math
 import multiprocessing
 import os
 import sys
@@ -10,7 +10,9 @@ from typing import List
 from typing import Optional
 from typing import Union
 
+import click
 import pygeoprocessing
+import pygeoprocessing.geoprocessing
 import pygeoprocessing.routing
 import taskgraph
 from osgeo import gdal
@@ -32,7 +34,6 @@ WGS84_SRS_WKT = WGS84_SRS.ExportToWkt()
 
 
 def main(args=None) -> Dict[str, str]:
-    # parse args
     return {
         'source_dem_slug': 'SRTM',
         'source_aoi_path': sys.argv[1],
@@ -44,13 +45,23 @@ def main(args=None) -> Dict[str, str]:
 
 
 # TODO: add typehint-sensitive docstring
-# TODO: add taskgraph
+@click.command()
+@click.option('--dem', default="SRTM", help="The name of the DEM to use.")
+@click.argument('aoi')
+@click.option('--tfa', help=(
+    'The threshold flow accumulation, in the format start:stop:step. For '
+    'example, "1000:5000:150"'))
+@click.option('--workspace', default='preprocess-dem-workspace')
+@click.option('--routing_method', default='d8')
+@click.option('--resample_method', default='near')
+@click.option('--target_epsg', default=None)
+@click.option('--pixel_size', default=None)
 def preprocess_dem(
-        source_dem_slug: str,
-        source_aoi_path: str,
-        tfa_slice: str,
+        dem: str,
+        aoi: str,
+        tfa: str,
         workspace: str,
-        pixel_size: List[float],
+        pixel_size: List[float] = None,
         routing_method: str = 'D8',
         resample_method: Optional[str] = 'near',
         target_epsg: Optional[Union[str, int]] = None
@@ -65,7 +76,7 @@ def preprocess_dem(
         n_workers=multiprocessing.cpu_count())
     LOGGER.info(f"Writing output files to {workspace}")
 
-    vector_info = pygeoprocessing.get_vector_info(source_aoi_path)
+    vector_info = pygeoprocessing.get_vector_info(aoi)
 
     target_srs = osr.SpatialReference()
     if target_epsg is not None:
@@ -94,15 +105,33 @@ def preprocess_dem(
     # strictly required, but it's easier to use pygeoprocessing's warp_raster
     # (which requires a local file) than calling gdal.Warp with options.
     LOGGER.info("Building a VRT for the clipped bounds")
-    source_url = KNOWN_DEMS[source_dem_slug]
-    vrt_path = os.path.join(workspace, f'wgs84-{source_dem_slug}.vrt')
+    source_url = KNOWN_DEMS[dem]
+    vrt_path = os.path.join(workspace, f'wgs84-{dem}.vrt')
     gdal.BuildVRT(vrt_path, [f'/vsicurl/{source_url}'],
                   outputBounds=wgs84_bbox)
 
+    if isinstance(pixel_size, str):
+        pixel_size = [int(s) for s in pixel_size.split(',')]
+
+    if not pixel_size:
+        target_srs_units = target_srs.GetAttrValue('UNIT')
+        if target_srs_units not in ('m', 'meter', 'metre'):
+            raise ValueError(
+                f"Target EPSG units are not in meters ({target_srs_units}), "
+                "so you must define the pixel size at the CLI. "
+                "Example: --pixel_size=[30,30]")
+
+        source_raster_info = pygeoprocessing.get_raster_info(vrt_path)
+        pixel_size_on_a_side = math.sqrt(
+            pygeoprocessing.geoprocessing._m2_area_of_wg84_pixel(
+                source_raster_info['pixel_size'][0],
+                (wgs84_bbox[1] - wgs84_bbox[0]) / 2))
+        pixel_size = [pixel_size_on_a_side, -pixel_size_on_a_side]
+
     # Warp to the target projection
-    LOGGER.info(f"Warping {source_dem_slug} to local projection with "
+    LOGGER.info(f"Warping {dem} to local projection with "
                 f"{resample_method}")
-    warped_raster = os.path.join(workspace, f'warped-{source_dem_slug}.tif')
+    warped_raster = os.path.join(workspace, f'warped-{dem}.tif')
     warped_task = graph.add_task(
         pygeoprocessing.warp_raster,
         kwargs={
@@ -119,7 +148,7 @@ def preprocess_dem(
     )
 
     LOGGER.info("Filling pits")
-    filled_raster = os.path.join(workspace, f'pitfilled-{source_dem_slug}.tif')
+    filled_raster = os.path.join(workspace, f'pitfilled-{dem}.tif')
     pitfilling_task = graph.add_task(
         pygeoprocessing.routing.fill_pits,
         args=[(warped_raster, 1), filled_raster],
@@ -142,7 +171,7 @@ def preprocess_dem(
 
     LOGGER.info("Calculating flow direction")
     flow_dir_raster = os.path.join(
-        workspace, f'flowdir-{routing_method}-{source_dem_slug}.tif')
+        workspace, f'flowdir-{routing_method}-{dem}.tif')
     flow_dir_task = graph.add_task(
         flow_dir_func,
         args=[(filled_raster, 1), flow_dir_raster],
@@ -153,7 +182,7 @@ def preprocess_dem(
 
     LOGGER.info("Calculating flow accumulation")
     flow_accum_raster = os.path.join(
-        workspace, f'flowaccum-{routing_method}-{source_dem_slug}.tif')
+        workspace, f'flowaccum-{routing_method}-{dem}.tif')
     flow_accum_task = graph.add_task(
         flow_accum_func,
         args=[(flow_dir_raster, 1), flow_accum_raster],
@@ -162,11 +191,16 @@ def preprocess_dem(
         dependent_task_list=[flow_dir_task]
     )
 
-    tfa_start, tfa_stop, tfa_step = tfa_slice.split(":")
+    if not tfa:
+        graph.close()
+        graph.join()
+        return
+
+    tfa_start, tfa_stop, tfa_step = tfa.split(":")
     for tfa in range(int(tfa_start), int(tfa_stop), int(tfa_step)):
         LOGGER.info(f"Calculating streams with TFA {tfa}")
         tfa_raster_path = os.path.join(
-            workspace, f'tfa-{source_dem_slug}-{tfa}.tif')
+            workspace, f'tfa-{dem}-{tfa}.tif')
         if routing_method == 'd8':
             _ = graph.add_task(
                 pygeoprocessing.routing.extract_streams_d8,
@@ -191,5 +225,6 @@ def preprocess_dem(
 
 
 if __name__ == '__main__':
-    PARSED_ARGS = main()
-    preprocess_dem(**PARSED_ARGS)
+    #PARSED_ARGS = main()
+    #preprocess_dem(**PARSED_ARGS)
+    preprocess_dem()
