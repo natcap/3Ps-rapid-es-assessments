@@ -2,6 +2,7 @@
 
 import argparse
 import logging
+import multiprocessing
 import os
 import sys
 from typing import Dict
@@ -11,6 +12,7 @@ from typing import Union
 
 import pygeoprocessing
 import pygeoprocessing.routing
+import taskgraph
 from osgeo import gdal
 from osgeo import osr
 
@@ -57,6 +59,10 @@ def preprocess_dem(
     workspace = os.path.normcase(os.path.normpath(workspace))
     if not os.path.exists(workspace):
         os.makedirs(workspace)
+
+    graph = taskgraph.TaskGraph(
+        os.path.join(workspace, '.taskgraph'),
+        n_workers=multiprocessing.cpu_count())
     LOGGER.info(f"Writing output files to {workspace}")
 
     vector_info = pygeoprocessing.get_vector_info(source_aoi_path)
@@ -91,19 +97,43 @@ def preprocess_dem(
     source_url = KNOWN_DEMS[source_dem_slug]
     vrt_options = gdal.BuildVRTOptions(outputBounds=wgs84_bbox)
     vrt_path = os.path.join(workspace, f'wgs84-{source_dem_slug}.vrt')
-    gdal.BuildVRT(vrt_path, [f'/vsicurl/{source_url}'], options=vrt_options)
+    vrt_task = graph.add_task(
+        gdal.BuildVRT,
+        args=[vrt_path, [f'/vsicurl/{source_url}']],
+        kwargs={'options': vrt_options},
+        task_name='Build VRT',
+        target_path_list=[vrt_path],
+        dependent_task_list=[]
+    )
 
     # Warp to the target projection
     LOGGER.info(f"Warping {source_dem_slug} to local projection with "
                 f"{resample_method}")
     warped_raster = os.path.join(workspace, f'warped-{source_dem_slug}.tif')
-    pygeoprocessing.warp_raster(
-        vrt_path, pixel_size, warped_raster, resample_method,
-        target_bb=target_bbox, target_projection_wkt=target_srs_wkt)
+    warped_task = graph.add_task(
+        pygeoprocessing.warp_raster,
+        kwargs={
+            'base_raster_path': vrt_path,
+            'target_pixel_size': pixel_size,
+            'target_raster_path': warped_raster,
+            'resample_method': resample_method,
+            'target_bb': target_bbox,
+            'target_projection_wkt': target_srs_wkt,
+        },
+        task_name='Fetch and warp DEM',
+        target_path_list=[warped_raster],
+        dependent_task_list=[vrt_task]
+    )
 
     LOGGER.info("Filling pits")
     filled_raster = os.path.join(workspace, f'pitfilled-{source_dem_slug}.tif')
-    pygeoprocessing.routing.fill_pits((warped_raster, 1), filled_raster)
+    pitfilling_task = graph.add_task(
+        pygeoprocessing.routing.fill_pits,
+        args=[(warped_raster, 1), filled_raster],
+        task_name='Fill pits',
+        target_path_list=[filled_raster],
+        dependent_task_list=[warped_task]
+    )
 
     LOGGER.info(f"Calculating {routing_method} flow direction")
     routing_method = routing_method.lower()
@@ -120,12 +150,24 @@ def preprocess_dem(
     LOGGER.info("Calculating flow direction")
     flow_dir_raster = os.path.join(
         workspace, f'flowdir-{routing_method}-{source_dem_slug}.tif')
-    flow_dir_func((filled_raster, 1), flow_dir_raster)
+    flow_dir_task = graph.add_task(
+        flow_dir_func,
+        args=[(filled_raster, 1), flow_dir_raster],
+        task_name='Flow direction',
+        target_path_list=[flow_dir_raster],
+        dependent_task_list=[pitfilling_task]
+    )
 
     LOGGER.info("Calculating flow accumulation")
     flow_accum_raster = os.path.join(
         workspace, f'flowaccum-{routing_method}-{source_dem_slug}.tif')
-    flow_accum_func((flow_dir_raster, 1), flow_accum_raster)
+    flow_accum_task = graph.add_task(
+        flow_accum_func,
+        args=[(flow_dir_raster, 1), flow_accum_raster],
+        task_name='Flow direction',
+        target_path_list=[flow_accum_raster],
+        dependent_task_list=[flow_dir_task]
+    )
 
     tfa_start, tfa_stop, tfa_step = tfa_slice.split(":")
     for tfa in range(int(tfa_start), int(tfa_stop), int(tfa_step)):
@@ -133,12 +175,25 @@ def preprocess_dem(
         tfa_raster_path = os.path.join(
             workspace, f'tfa-{source_dem_slug}-{tfa}.tif')
         if routing_method == 'd8':
-            pygeoprocessing.routing.extract_streams_d8(
-                (flow_accum_raster, 1), tfa, tfa_raster_path)
+            _ = graph.add_task(
+                pygeoprocessing.routing.extract_streams_d8,
+                args=[(flow_accum_raster, 1), tfa, tfa_raster_path],
+                task_name='D8 stream extraction',
+                target_path_list=[tfa_raster_path],
+                dependent_task_list=[flow_accum_task],
+            )
         else:
-            pygeoprocessing.routing.extract_streams_mfd(
-                (flow_accum_raster, 1), (flow_dir_raster, 1), tfa,
-                tfa_raster_path)
+            _ = graph.add_task(
+                pygeoprocessing.routing.extract_streams_mfd,
+                args=[(flow_accum_raster, 1), (flow_dir_raster, 1), tfa,
+                      tfa_raster_path],
+                task_name='MFD stream extraction',
+                target_path_list=[tfa_raster_path],
+                dependent_task_list=[flow_accum_task],
+            )
+
+    graph.close()
+    graph.join()
 
 
 if __name__ == '__main__':
