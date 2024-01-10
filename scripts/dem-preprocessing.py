@@ -95,16 +95,9 @@ def preprocess_dem(
     # (which requires a local file) than calling gdal.Warp with options.
     LOGGER.info("Building a VRT for the clipped bounds")
     source_url = KNOWN_DEMS[source_dem_slug]
-    vrt_options = gdal.BuildVRTOptions(outputBounds=wgs84_bbox)
     vrt_path = os.path.join(workspace, f'wgs84-{source_dem_slug}.vrt')
-    vrt_task = graph.add_task(
-        gdal.BuildVRT,
-        args=[vrt_path, [f'/vsicurl/{source_url}']],
-        kwargs={'options': vrt_options},
-        task_name='Build VRT',
-        target_path_list=[vrt_path],
-        dependent_task_list=[]
-    )
+    gdal.BuildVRT(vrt_path, [f'/vsicurl/{source_url}'],
+                  outputBounds=wgs84_bbox)
 
     # Warp to the target projection
     LOGGER.info(f"Warping {source_dem_slug} to local projection with "
@@ -122,7 +115,7 @@ def preprocess_dem(
         },
         task_name='Fetch and warp DEM',
         target_path_list=[warped_raster],
-        dependent_task_list=[vrt_task]
+        dependent_task_list=[]
     )
 
     LOGGER.info("Filling pits")
@@ -194,6 +187,7 @@ def preprocess_dem(
 
     graph.close()
     graph.join()
+    LOGGER.info("Complete!")
 
 
 if __name__ == '__main__':
