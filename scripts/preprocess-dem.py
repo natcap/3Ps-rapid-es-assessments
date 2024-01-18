@@ -114,7 +114,6 @@ def preprocess_dem(
     Returns:
         ``None``
     """
-    print(pixel_size)
     workspace = os.path.normcase(os.path.normpath(workspace))
     if not os.path.exists(workspace):
         os.makedirs(workspace)
