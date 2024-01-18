@@ -1,4 +1,16 @@
-"""DEM preprocessing script.  Details TBD."""
+"""Preprocess a DEM from the data cache.
+
+This preprocessing script steps through the usual steps needed for processing a
+DEM that's available in the NatCap data cache:
+
+    1. Download the region needed, as defined by a vector AOI
+    2. Warp the downloaded raster to a local projection and pixel size
+        defined by an EPSG code and (optionally) a user-defined pixel size
+    3. Fill hydrological sinks
+    4. Calculate flow direction
+    5. Calculate flow accumulation
+    6. If desired, create a set of stream networks from a range of TFA values
+"""
 
 import logging
 import math
@@ -33,17 +45,6 @@ WGS84_SRS.ImportFromEPSG(4326)
 WGS84_SRS_WKT = WGS84_SRS.ExportToWkt()
 
 
-def main(args=None) -> Dict[str, str]:
-    return {
-        'source_dem_slug': 'SRTM',
-        'source_aoi_path': sys.argv[1],
-        'tfa_slice': '1000:10000:200',
-        'workspace': 'bay_area_workspace',
-        'pixel_size': [30, 30],
-        'resample_method': 'bilinear',
-    }
-
-
 def _write_vrt(
         source_raster_url: str,
         target_vrt_path: str,
@@ -69,9 +70,12 @@ def _write_vrt(
 @click.command()
 @click.option('--dem', default="SRTM", help="The name of the DEM to use.")
 @click.argument('aoi')
-@click.option('--tfa', help=(
-    'The threshold flow accumulation, in the format start:stop:step. For '
-    'example, "1000:5000:150"'))
+@click.option('--tfa', default=None, help=(
+    'A range of flow accumulation thresholds to run, in the format '
+    'start:stop:step.  For example, "1000:5000:150" would extract streams '
+    'for TFA values 1000, 1150, 1300 ... 5000.  If this parameter is not '
+    'provided, no streams will be extracted.')
+)
 @click.option('--workspace', default='preprocess-dem-workspace')
 @click.option('--routing_method', default='d8', help="Either D8 or MFD")
 @click.option('--resample_method', default='near',
@@ -82,12 +86,12 @@ def _write_vrt(
 @click.option('--pixel_size', default=None, help=(
     "The pixel size of the output raster.  If not provided and the target "
     "projection is in meters, the output raster will have the pixel size of "
-    "the center latitude of the bounding box."))
+    "the center latitude of the bounding box.  Example: '--pixel_size=30,30'"))
 def preprocess_dem(
         dem: str,
         aoi: str,
-        tfa: str,
         workspace: str,
+        tfa: str = None,
         pixel_size: List[float] = None,
         routing_method: str = 'D8',
         resample_method: Optional[str] = 'near',
@@ -110,6 +114,7 @@ def preprocess_dem(
     Returns:
         ``None``
     """
+    print(pixel_size)
     workspace = os.path.normcase(os.path.normpath(workspace))
     if not os.path.exists(workspace):
         os.makedirs(workspace)
@@ -173,7 +178,7 @@ def preprocess_dem(
             raise ValueError(
                 f"Target EPSG units are not in meters ({target_srs_units}), "
                 "so you must define the pixel size at the CLI. "
-                "Example: --pixel_size=[30,30]")
+                "Example: --pixel_size=30,30")
 
         source_raster_info = pygeoprocessing.get_raster_info(vrt_path)
         pixel_size_on_a_side = math.sqrt(
@@ -246,12 +251,24 @@ def preprocess_dem(
     )
 
     if not tfa:
+        LOGGER.info(
+            "No TFA values provided for stream extraction.  If a range of "
+            "TFA-based streams are desired, use --tfa=start:stop:step "
+            "(example: --tfa=100:1000:250)")
         graph.close()
         graph.join()
+        LOGGER.info("Complete!")
         return
 
     tfa_start, tfa_stop, tfa_step = tfa.split(":")
-    for tfa in range(int(tfa_start), int(tfa_stop), int(tfa_step)):
+    LOGGER.info(
+        f"Starting stream extractions with TFA {tfa_start} to {tfa_stop} at "
+        f"{tfa_step} intervals.")
+
+    # Adding +1 to the end TFA value so that we include the endpoint of the
+    # set.  I think that will be clearer behavior than stopping just before the
+    # end.
+    for tfa in range(int(tfa_start), int(tfa_stop)+1, int(tfa_step)):
         LOGGER.info(f"Calculating streams with TFA {tfa}")
         tfa_raster_path = os.path.join(
             workspace, f'tfa-{dem}-{tfa}.tif')
@@ -279,6 +296,4 @@ def preprocess_dem(
 
 
 if __name__ == '__main__':
-    #PARSED_ARGS = main()
-    #preprocess_dem(**PARSED_ARGS)
     preprocess_dem()
