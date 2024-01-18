@@ -44,7 +44,28 @@ def main(args=None) -> Dict[str, str]:
     }
 
 
-# TODO: add typehint-sensitive docstring
+def _write_vrt(
+        source_raster_url: str,
+        target_vrt_path: str,
+        gdal_kwargs: Dict):
+    """Write a GDAL VRT.
+
+    A separate function here is easier to wrap up as a taskgraph task.  It
+    turns out that ``gdal.BuildVRT`` returns an unpickleable object.
+
+    Args:
+        source_raster_url: The http(s) URL to the target layer.
+        target_vrt_path: The local filepath where the VRT should be written.
+        gdal_kwargs: A dict mapping gdal VRTOptions parameter names to their
+            values.
+
+    Returns:
+        ``None``
+    """
+    gdal.BuildVRT(target_vrt_path, [f'/vsicurl/{source_raster_url}'],
+                  **gdal_kwargs)
+
+
 @click.command()
 @click.option('--dem', default="SRTM", help="The name of the DEM to use.")
 @click.argument('aoi')
@@ -129,8 +150,19 @@ def preprocess_dem(
     LOGGER.info("Building a VRT for the clipped bounds")
     source_url = KNOWN_DEMS[dem]
     vrt_path = os.path.join(workspace, f'wgs84-{dem}.vrt')
-    gdal.BuildVRT(vrt_path, [f'/vsicurl/{source_url}'],
-                  outputBounds=wgs84_bbox)
+    vrt_task = graph.add_task(
+        _write_vrt,
+        kwargs={
+            'source_raster_url': source_url,
+            'target_vrt_path': vrt_path,
+            'gdal_kwargs': {
+                'outputBounds': wgs84_bbox,
+            },
+        },
+        task_name='Build VRT',
+        dependent_task_list=[],
+        target_path_list=[vrt_path],
+    )
 
     if isinstance(pixel_size, str):
         pixel_size = [int(s) for s in pixel_size.split(',')]
@@ -166,7 +198,7 @@ def preprocess_dem(
         },
         task_name='Fetch and warp DEM',
         target_path_list=[warped_raster],
-        dependent_task_list=[]
+        dependent_task_list=[vrt_task]
     )
 
     LOGGER.info("Filling pits")
