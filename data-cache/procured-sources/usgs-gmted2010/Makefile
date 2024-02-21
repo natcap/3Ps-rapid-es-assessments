@@ -11,7 +11,7 @@ GTIFF_CREATE_OPTS := -co "COMPRESS=LZW" \
 					 -co "SPARSE_OK=False" \
 					 -co "BIGTIFF=YES" \
 					 -co "NUM_THREADS=$(N_WORKERS)"
-ALLTIFFS          := $(shell echo $(TILESDIR)/gmted2010-{mea,std,med,min,dsc,bln}{075,150,300}.tif)
+ALLTIFFS          := $(shell echo $(OUTPUT_DIR)/gmted2010-{mea,std,med,min,dsc,bln}{075,150,300}.tif)
 ALLVRTS		      := $(subst .tif,.vrt,$(ALLTIFFS))
 ALLTILES          := $(TILESDIR)/$(shell echo {70S,50S,30S,10S,10N,30N,50N,70N}{180W,150W,120W,090W,060W,030W,000E,030E,060E,090E,120E,150E,180E}_20101117_gmted_{mea,std,med,min,dsc,bln}{075,150,300}.tif)
 
