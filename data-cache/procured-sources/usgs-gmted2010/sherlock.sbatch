@@ -21,7 +21,7 @@ RESOLUTIONS=("075" "150" "300")
 
 for layer in "${LAYERS[@]}"; do
     for resolution in "${RESOLUTIONS[@]}"; do
-        gdalbuildvrt "$OUTPUT_DIR/gmted2010-${layer}-${resolution}.vrt" "$OUTPUT_DIR/tiles/*_${layer}${resolution}.tif"
+        gdalbuildvrt "$OUTPUT_DIR/gmted2010-${layer}-${resolution}.vrt" $(find "$OUTPUT_DIR/tiles/" -name "*_${layer}${resolution}.tif")
         sbatch --job-name="GMTED2010-create-${layer}-${resolution}" "$OUTPUT_DIR" sherlock-create-single-gtiff.sbatch
     done
 done
