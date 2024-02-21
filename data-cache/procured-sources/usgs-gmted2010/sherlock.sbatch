@@ -14,6 +14,7 @@ module load physics gdal
 OUTPUT_DIR=$SCRATCH/gmted2010
 
 mkdir "$OUTPUT_DIR" || echo "$OUTPUT_DIR already exists"
+make OUTPUT_DIR="$OUTPUT_DIR" $OUTPUT_DIR/gmted2010-urls.txt
 make OUTPUT_DIR="$OUTPUT_DIR" download-batch
 
 LAYERS=("mea" "std" "med" "min" "dsc" "bln")
