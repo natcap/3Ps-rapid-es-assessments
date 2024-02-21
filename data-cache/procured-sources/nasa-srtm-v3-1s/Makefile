@@ -35,7 +35,7 @@ srtm.vrt:
 	gdalbuildvrt $@ tiles/*.hgt{,.zip}
 
 srtm-v3-1s.tif: srtm.vrt
-	$(SETCACHE) gdal_translate -ot "Int16" $(GTIFF_CREATE_OPTS) srtm.vrt $@
+	$(SETCACHE) gdal_translate -ot "Int16" $(GTIFF_CREATE_OPTS) $< $@
 
 srtm-v3-1s.tif.ovr: srtm-v3-1s.tif
 	$(SETCACHE) GDAL_NUM_THREADS=$(N_WORKERS) gdaladdo \
