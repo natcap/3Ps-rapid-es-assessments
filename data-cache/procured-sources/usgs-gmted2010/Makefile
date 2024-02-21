@@ -23,7 +23,7 @@ $(GMTED_URLS_FILE):
 
 .PHONY: download-batch submit
 download-batch: $(TILESDIR) $(GMTED_URLS_FILE)
-	cat $(ROOT_DIR)/$(GMTED_URLS_FILE) | parallel -j$(N_WORKERS) "wget \
+	cat $(GMTED_URLS_FILE) | parallel -j$(N_WORKERS) "wget \
 		--no-verbose --no-clobber --tries=20 --random-wait --retry-connrefused \
 		--directory-prefix=$(TILESDIR) {}"
 
