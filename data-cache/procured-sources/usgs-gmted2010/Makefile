@@ -1,5 +1,3 @@
-DIGEST	          := sha256:54066e72aa135deb8e2f60fda2f42f1856912e36967446659ad754b4b64d7efa
-CONTAINER         := ghcr.io/natcap/devstack
 OUTPUT_DIR	      := .
 TILESDIR          := $(OUTPUT_DIR)/tiles
 GMTED_URLS_FILE   := $(OUTPUT_DIR)/gmted2010-urls.txt
@@ -30,6 +28,7 @@ $(ALLTIFFS): $(GMTED_URLS_FILE)
 	$(SETCACHE) gdalbuildvrt $(subst .tif,.vrt,$@) \
 		$(addprefix /vsicurl/,$(shell grep $(subst gmted2010-,,$(notdir $@)) $(GMTED_URLS_FILE)))
 	$(SETCACHE) gdal_translate -ot "Int16" $(GTIFF_CREATE_OPTS) $(subst .tif,.vrt,$@) $@
+	$(SETCACHE) gdaladdo -ro --config COMPRESS_OVERVIEW LZW $@
 
 .PHONY: submit all
 all: $(ALLTIFFS)
