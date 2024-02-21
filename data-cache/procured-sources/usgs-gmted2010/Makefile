@@ -19,7 +19,7 @@ $(TILESDIR):
 	mkdir $@
 
 $(GMTED_URLS_FILE):
-	python build-tile-urls.py > $@
+	python $(ROOT_DIR)/build-tile-urls.py > $@
 
 .PHONY: download-batch submit
 download-batch: $(TILESDIR) $(GMTED_URLS_FILE)
