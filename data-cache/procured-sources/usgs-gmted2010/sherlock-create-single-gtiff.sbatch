@@ -7,5 +7,7 @@
 #SBATCH --mail-type=ALL
 #SBATCH --partition=normal,hns
 
+set -ex
+
 module load physics gdal
 make N_WORKERS="$SLURM_SPUS_PER_TASK" "$1"
