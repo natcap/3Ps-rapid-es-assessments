@@ -1,7 +1,8 @@
 DIGEST	          := sha256:54066e72aa135deb8e2f60fda2f42f1856912e36967446659ad754b4b64d7efa
 CONTAINER         := ghcr.io/natcap/devstack
-TILESDIR          := tiles
-GMTED_URLS_FILE   := gmted2010-urls.txt
+OUTPUT_DIR	      := .
+TILESDIR          := $(OUTPUT_DIR)/tiles
+GMTED_URLS_FILE   := $(OUTPUT_DIR)/gmted2010-urls.txt
 N_WORKERS         := 8
 SETCACHE          := GDAL_CACHEMAX=2048
 GTIFF_CREATE_OPTS := -co "COMPRESS=LZW" \
@@ -26,7 +27,7 @@ download-batch: $(TILESDIR) $(GMTED_URLS_FILE)
 		--no-verbose --no-clobber --tries=20 --random-wait --retry-connrefused \
 		--directory-prefix=$(TILESDIR) {}"
 
-gmted2010-%.tif:
+$(OUTPUT_DIR)/gmted2010-%.tif:
 	$(SETCACHE) gdal_translate -ot "Int16" $(GTIFF_CREATE_OPTS) $(subst .tif,.vrt,$@) $@
 
 submit:

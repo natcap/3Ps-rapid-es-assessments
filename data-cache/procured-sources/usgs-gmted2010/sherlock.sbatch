@@ -14,7 +14,7 @@ module load physics gdal
 OUTPUT_DIR=$SCRATCH/gmted2010
 
 mkdir "$OUTPUT_DIR" || echo "$OUTPUT_DIR already exists"
-make -C "$OUTPUT_DIR" download-batch
+make OUTPUT_DIR="$OUTPUT_DIR" download-batch
 
 LAYERS=("mea" "std" "med" "min" "dsc" "bln")
 RESOLUTIONS=("075" "150" "300")
@@ -22,6 +22,6 @@ RESOLUTIONS=("075" "150" "300")
 for layer in "${LAYERS[@]}"; do
     for resolution in "${RESOLUTIONS[@]}"; do
         gdalbuildvrt "$OUTPUT_DIR/gmted2010-${layer}-${resolution}.vrt" "$OUTPUT_DIR/tiles/*_${layer}${resolution}.tif"
-        sbatch --job-name="GMTED2010-create-${layer}-${resolution}" sherlock-create-single-gtiff.sbatch
+        sbatch --job-name="GMTED2010-create-${layer}-${resolution}" "$OUTPUT_DIR" sherlock-create-single-gtiff.sbatch
     done
 done

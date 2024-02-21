@@ -10,4 +10,4 @@
 set -ex
 
 module load physics gdal
-make N_WORKERS="$SLURM_SPUS_PER_TASK" "$1"
+make N_WORKERS="$SLURM_SPUS_PER_TASK" OUTPUT_DIR="$1" "$2"
