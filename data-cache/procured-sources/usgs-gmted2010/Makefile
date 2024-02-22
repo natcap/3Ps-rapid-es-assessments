@@ -10,6 +10,7 @@ GTIFF_CREATE_OPTS := -co "COMPRESS=LZW" \
 					 -co "BIGTIFF=YES" \
 					 -co "NUM_THREADS=$(N_WORKERS)"
 ALLTIFFS          := $(shell echo $(OUTPUT_DIR)/gmted2010-{mea,std,med,min,dsc,bln}{075,150,300}.tif)
+SBATCH_PARAMS     := --output=$(SCRATCH)/slurm-logfiles/slurm-%j.%x.out
 
 # For debugging.  Run `make print-VARIABLE` to see the value of a variable.
 print-%:
@@ -34,4 +35,8 @@ $(ALLTIFFS): $(GMTED_URLS_FILE)
 all: $(ALLTIFFS)
 
 submit:
-	sbatch --output=$(SCRATCH)/slurm-logfiles/slurm-%j.%x.out sherlock.sbatch
+	for mode in mea std med min dsc bln; do \
+		sbatch $(SBATCH_PARAMS) --job-name=GMTED2010-$$mode-075 --time=4:00:00 sherlock.sbatch $(OUTPUT_DIR)/gmted2010-$$mode075.tif; \
+		sbatch $(SBATCH_PARAMS) --job-name=GMTED2010-$$mode-150 --time=2:00:00 sherlock.sbatch $(OUTPUT_DIR)/gmted2010-$$mode150.tif; \
+		sbatch $(SBATCH_PARAMS) --job-name=GMTED2010-$$mode-300 --time=1:00:00 sherlock.sbatch $(OUTPUT_DIR)/gmted2010-$$mode300.tif; \
+	done
