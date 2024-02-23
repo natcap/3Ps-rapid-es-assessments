@@ -11,4 +11,4 @@
 set -ex
 module load physics gdal
 
-make -j "$SLURM_CPUS_PER_TASK" "$1"
+make -j "$SLURM_CPUS_PER_TASK" -f "$SLURM_SUBMIT_DIR/Makefile" "$1"
