@@ -25,8 +25,7 @@ $(GMTED_URLS_FILE):
 	python $(ROOT_DIR)/build-tile-urls.py > $@
 
 $(ALLTIFFS): $(GMTED_URLS_FILE)
-	$(SETCACHE) gdalbuildvrt $(subst .tif,.vrt,$@) \
-		$(addprefix /vsicurl/,$(shell grep $(subst gmted2010-,,$(notdir $@)) $(GMTED_URLS_FILE)))
+	$(SETCACHE) gdalbuildvrt $(subst .tif,.vrt,$@) $(addprefix /vsicurl/,$(shell grep $(subst gmted2010-,,$(notdir $@)) $(GMTED_URLS_FILE)))
 	$(SETCACHE) gdal_translate -ot "Int16" $(GTIFF_CREATE_OPTS) $(subst .tif,.vrt,$@) $@
 	$(SETCACHE) gdaladdo -ro --config COMPRESS_OVERVIEW LZW $@
 
@@ -42,4 +41,4 @@ submit:
 
 sherlock-submit:
 	mkdir -p $(SCRATCH)/gmted2010 || echo "directory already exists"
-	make -C $(SCRATCH)/gmted2010 submit
+	make -C $(SCRATCH)/gmted2010 -f $(ROOT_DIR)/Makefile submit
