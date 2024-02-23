@@ -31,7 +31,7 @@ $(ALLTIFFS): $(GMTED_URLS_FILE)
 	$(SETCACHE) gdal_translate -ot "Int16" $(GTIFF_CREATE_OPTS) $(subst .tif,.vrt,$@) $@
 	$(SETCACHE) gdaladdo -ro --config COMPRESS_OVERVIEW LZW $@
 
-.PHONY: submit all
+.PHONY: submit all sherlock-submit
 all: $(ALLTIFFS)
 
 submit:
@@ -40,3 +40,6 @@ submit:
 		sbatch $(SBATCH_PARAMS) --job-name=GMTED2010-$$mode-150 --time=2:00:00 sherlock.sbatch $(OUTPUT_DIR)/gmted2010-$${mode}150.tif; \
 		sbatch $(SBATCH_PARAMS) --job-name=GMTED2010-$$mode-300 --time=1:00:00 sherlock.sbatch $(OUTPUT_DIR)/gmted2010-$${mode}300.tif; \
 	done
+
+sherlock-submit:
+	make OUTPUT_DIR=$(SCRATCH)/gmted2010 submit
