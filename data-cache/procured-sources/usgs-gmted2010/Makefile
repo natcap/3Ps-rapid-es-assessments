@@ -34,9 +34,9 @@ all: $(ALLTIFFS)
 
 submit:
 	for mode in mea std med min dsc bln; do \
-		sbatch $(SBATCH_PARAMS) --job-name=GMTED2010-$$mode-075 --time=4:00:00 sherlock.sbatch gmted2010-$${mode}075.tif; \
-		sbatch $(SBATCH_PARAMS) --job-name=GMTED2010-$$mode-150 --time=2:00:00 sherlock.sbatch gmted2010-$${mode}150.tif; \
-		sbatch $(SBATCH_PARAMS) --job-name=GMTED2010-$$mode-300 --time=1:00:00 sherlock.sbatch gmted2010-$${mode}300.tif; \
+		sbatch $(SBATCH_PARAMS) --job-name=GMTED2010-$$mode-075 --time=4:00:00 $(ROOT_DIR)/sherlock.sbatch gmted2010-$${mode}075.tif; \
+		sbatch $(SBATCH_PARAMS) --job-name=GMTED2010-$$mode-150 --time=2:00:00 $(ROOT_DIR)/sherlock.sbatch gmted2010-$${mode}150.tif; \
+		sbatch $(SBATCH_PARAMS) --job-name=GMTED2010-$$mode-300 --time=1:00:00 $(ROOT_DIR)/sherlock.sbatch gmted2010-$${mode}300.tif; \
 	done
 
 sherlock-submit:
