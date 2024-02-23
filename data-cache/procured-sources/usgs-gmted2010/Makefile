@@ -41,4 +41,4 @@ submit:
 
 sherlock-submit:
 	mkdir -p $(SCRATCH)/gmted2010 || echo "directory already exists"
-	make -C $(SCRATCH)/gmted2010 -f $(ROOT_DIR)/Makefile submit
+	make submit
