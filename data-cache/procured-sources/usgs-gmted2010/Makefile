@@ -42,4 +42,5 @@ submit:
 	done
 
 sherlock-submit:
-	make OUTPUT_DIR=$(SCRATCH)/gmted2010 submit
+	sbatch $(SBATCH_PARAMS) --job-name=GMTED2010-mea-075 --time=4:00:00 sherlock.sbatch $(OUTPUT_DIR)/gmted2010-mea075.tif; \
+	#make OUTPUT_DIR=$(SCRATCH)/gmted2010 submit
