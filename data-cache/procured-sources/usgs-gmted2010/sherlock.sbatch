@@ -11,8 +11,4 @@
 set -ex
 module load physics gdal
 
-OUTPUT_DIR=$SCRATCH/gmted2010
-
-mkdir "$OUTPUT_DIR" || echo "$OUTPUT_DIR already exists"
-
-make -j "$SLURM_CPUS_PER_TASK" OUTPUT_DIR="$OUTPUT_DIR" "$1"
+make -j "$SLURM_CPUS_PER_TASK" "$1"

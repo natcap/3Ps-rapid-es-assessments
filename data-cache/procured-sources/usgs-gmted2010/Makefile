@@ -1,6 +1,5 @@
-OUTPUT_DIR	      := .
-TILESDIR          := $(OUTPUT_DIR)/tiles
-GMTED_URLS_FILE   := $(OUTPUT_DIR)/gmted2010-urls.txt
+TILESDIR          := tiles
+GMTED_URLS_FILE   := gmted2010-urls.txt
 N_WORKERS         := 8
 SETCACHE          := GDAL_CACHEMAX=2048
 GTIFF_CREATE_OPTS := -co "COMPRESS=LZW" \
@@ -9,7 +8,7 @@ GTIFF_CREATE_OPTS := -co "COMPRESS=LZW" \
 					 -co "SPARSE_OK=False" \
 					 -co "BIGTIFF=YES" \
 					 -co "NUM_THREADS=$(N_WORKERS)"
-ALLTIFFS          := $(shell echo $(OUTPUT_DIR)/gmted2010-{mea,std,med,min,dsc,bln}{075,150,300}.tif)
+ALLTIFFS          := $(shell echo gmted2010-{mea,std,med,min,dsc,bln}{075,150,300}.tif)
 SBATCH_PARAMS     := --output=$(SCRATCH)/slurm-logfiles/slurm-%j.%x.out
 
 # For debugging.  Run `make print-VARIABLE` to see the value of a variable.
@@ -36,11 +35,11 @@ all: $(ALLTIFFS)
 
 submit:
 	for mode in mea std med min dsc bln; do \
-		sbatch $(SBATCH_PARAMS) --job-name=GMTED2010-$$mode-075 --time=4:00:00 sherlock.sbatch $(OUTPUT_DIR)/gmted2010-$${mode}075.tif; \
-		sbatch $(SBATCH_PARAMS) --job-name=GMTED2010-$$mode-150 --time=2:00:00 sherlock.sbatch $(OUTPUT_DIR)/gmted2010-$${mode}150.tif; \
-		sbatch $(SBATCH_PARAMS) --job-name=GMTED2010-$$mode-300 --time=1:00:00 sherlock.sbatch $(OUTPUT_DIR)/gmted2010-$${mode}300.tif; \
+		sbatch $(SBATCH_PARAMS) --job-name=GMTED2010-$$mode-075 --time=4:00:00 sherlock.sbatch gmted2010-$${mode}075.tif; \
+		sbatch $(SBATCH_PARAMS) --job-name=GMTED2010-$$mode-150 --time=2:00:00 sherlock.sbatch gmted2010-$${mode}150.tif; \
+		sbatch $(SBATCH_PARAMS) --job-name=GMTED2010-$$mode-300 --time=1:00:00 sherlock.sbatch gmted2010-$${mode}300.tif; \
 	done
 
 sherlock-submit:
-	sbatch $(SBATCH_PARAMS) --job-name=GMTED2010-mea-075 --time=4:00:00 sherlock.sbatch $(OUTPUT_DIR)/gmted2010-mea075.tif; \
-	#make OUTPUT_DIR=$(SCRATCH)/gmted2010 submit
+	mkdir -p $(SCRATCH)/gmted2010 || echo "directory already exists"
+	make -C $(SCRATCH)/gmted2010 submit
