@@ -11,4 +11,6 @@
 set -ex
 module load physics gdal
 
-make -j "$SLURM_CPUS_PER_TASK" -f "$SLURM_SUBMIT_DIR/Makefile" "$1"
+mkdir -p "$SCRATCH/gmted2010" || echo "Directory already exists"
+
+make -j "$SLURM_CPUS_PER_TASK" -f "$SLURM_SUBMIT_DIR/Makefile" -C "$SCRATCH/gmted2010" "$1"
