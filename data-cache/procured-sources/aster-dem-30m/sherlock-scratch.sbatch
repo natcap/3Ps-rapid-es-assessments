@@ -6,7 +6,7 @@
 #SBATCH --mem-per-cpu=4G
 #SBATCH --mail-type=ALL
 #SBATCH --partition=hns,normal
-#SBATCH --job-name="SRTM-processing"
+#SBATCH --job-name="ASTER-processing"
 
 set -ex
 
