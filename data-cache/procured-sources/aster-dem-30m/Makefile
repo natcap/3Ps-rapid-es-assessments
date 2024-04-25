@@ -28,7 +28,6 @@ download-batch: $(TILESDIR)
 	cat $(ROOT_DIR)/$(ASTER_URLS_FILE) | parallel -j$(N_WORKERS) "wget \
 		--no-verbose --no-clobber --tries=20 --random-wait --retry-connrefused \
 		--directory-prefix=$(TILESDIR) {}"
-	python3 $(ROOT_DIR)/clean-aster-tiles.py $(TILESDIR)
 
 aster.vrt:
 	gdalbuildvrt $@ tiles/*.hgt{,.zip}
