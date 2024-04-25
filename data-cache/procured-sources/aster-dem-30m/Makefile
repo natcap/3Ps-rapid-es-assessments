@@ -30,7 +30,7 @@ download-batch: $(TILESDIR)
 		--directory-prefix=$(TILESDIR) {}"
 
 aster.vrt:
-	gdalbuildvrt $@ tiles/*.zip{,.hgt}
+	gdalbuildvrt $@ tiles/*.zip
 
 aster-v3-1s.tif: aster.vrt
 	$(SETCACHE) gdal_translate -ot "Int16" $(GTIFF_CREATE_OPTS) $< $@
