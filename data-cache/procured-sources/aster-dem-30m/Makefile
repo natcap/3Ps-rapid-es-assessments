@@ -23,9 +23,9 @@ $(TILESDIR):
 	mkdir $@
 
 # Sometimes it's useful to use a single HTTP session for this
-.PHONY: download-batch
-download-batch: $(TILESDIR)
-	cat $(ROOT_DIR)/$(ASTER_URLS_FILE) | parallel -j$(N_WORKERS) "wget \
+#.PHONY: download-batch
+#download-batch: $(TILESDIR)
+#	cat $(ROOT_DIR)/$(ASTER_URLS_FILE) | parallel -j$(N_WORKERS) "wget \
 		--no-verbose --no-clobber --tries=20 --random-wait --retry-connrefused \
 		--user=\"$(NASA_EARTHDATA_USERNAME)\" --password=\"$(NASA_EARTHDATA_PASSWORD)\" \
 		--directory-prefix=$(TILESDIR) {}"
