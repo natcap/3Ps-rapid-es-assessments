@@ -3,41 +3,38 @@ import requests
 import io
 import zipfile
 from osgeo import gdal
-
+import sys
 import numpy
 import pygeoprocessing
+import argparse
 
 
-path = 'Z:/global-dataset-cache/CGIAR-ET0'
+path = sys.argv[1]
 url = r'https://figshare.com/ndownloader/articles/7504448/versions/6'
-
-download = os.path.join(path, 'downloads')
-if not os.path.exists(download):
-    os.mkdir(download)
-
-monthly_path = os.path.join(path, 'monthly')
-if not os.path.exists(monthly_path):
-    os.mkdir(monthly_path)
-
-annual_path = os.path.join(path, 'annual')
-if not os.path.exists(annual_path):
-    os.mkdir(annual_path)
         
+
+directories = {'downloads':'downloads_path','monthly':'monthly_path','annual':'annual_path'}
+for d,p in directories.items():
+    path = os.path.join(file_path, d)            
+    if not os.path.exists(path):
+        os.mkdir(path)
+    globals()[str(p)] = path
+
 def download_all():
-    r = requests.get(url)
+    r = requests.get(url, stream=True)
     z = zipfile.ZipFile(io.BytesIO(r.content))
-    z.extractall(download)
+    z.extractall(downloads_path)
 
 def extract_monthly():
     files = []
-    for zip in os.listdir(os.path.join(download)):
+    for zip in os.listdir(os.path.join(downloads_path)):
         files.append(zip)
 
 
     # parse out the zip folder with monthly data
     for i in files:
         if "monthly" in i:
-            monthly = os.path.join(download,i)
+            monthly = os.path.join(downloads_path,i)
     print(monthly)
 
     # extract only the ET0 monthly files
@@ -53,13 +50,13 @@ def extract_monthly():
 
 def extract_annual():
     files = []
-    for zip in os.listdir(os.path.join(download)):
+    for zip in os.listdir(os.path.join(downloads_path)):
         files.append(zip)
 
     # parse out the zip folder with annual data
     for i in files:
         if "annual" in i:
-            annual = os.path.join(download,i)
+            annual = os.path.join(downloads_path,i)
 
     # extract only the ET0 files
     with zipfile.ZipFile(annual) as z:
@@ -69,11 +66,11 @@ def extract_annual():
 
 
 
-def main():
-    #download_all()
+def main(path):
+    download_all()
     extract_monthly()
-    #extract_annual()
+    extract_annual()
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1])
