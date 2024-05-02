@@ -29,10 +29,8 @@ def read_url():
 
 def sum_annual_precip():
     base_rasters =[]
-    for rasters in os.listdir(os.path.join(monthly_path)):
-        if rasters.endswith(".tif"):
-            rasters=os.path.join(path,monthly,rasters)
-            base_rasters.append(rasters)
+    for rasters in glob.glob(os.path.join(monthly_path,'*.tif')):
+        base_rasters.append(rasters)
     
     print(base_rasters)
 
