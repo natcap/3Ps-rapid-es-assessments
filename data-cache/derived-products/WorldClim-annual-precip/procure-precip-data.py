@@ -3,43 +3,46 @@ import requests
 import io
 import zipfile
 from osgeo import gdal
-
+import logging
 import numpy
 import pygeoprocessing
 
+logging.basicConfig(level=logging.INFO)
 path = 'Z:/global-dataset-cache/world-clim'
 url = r'https://biogeo.ucdavis.edu/data/worldclim/v2.1/base/wc2.1_30s_prec.zip'
-NODATA_FLOAT32 = numpy.finfo(numpy.float32).min
-download = os.path.join(path, 'downloads')
-monthly = os.path.join(path, 'monthly')
-if not os.path.exists(monthly):
-        os.mkdir(monthly)
+directories = {'monthly':'monthly_path','annual':'annual_path'}
+for d,p in directories.items():
+    path = os.path.join(file_path, d)            
+    if not os.path.exists(path):
+        os.mkdir(path)
+    globals()[str(p)] = path
         
 def read_url():
     r = requests.get(url)
     z = zipfile.ZipFile(io.BytesIO(r.content))
-    z.extractall(download)
-    z.extractall(monthly)
+    z.extractall(monthly_path)
 
 def sum_annual_precip():
     base_rasters =[]
-    for rasters in os.listdir(os.path.join(path, monthly)):
+    for rasters in os.listdir(os.path.join(monthly_path)):
         if rasters.endswith(".tif"):
             rasters=os.path.join(path,monthly,rasters)
             base_rasters.append(rasters)
     
     print(base_rasters)
 
-    nodatas = [
-        pygeoprocessing.get_raster_info(path)['nodata'][0] for path in base_rasters]
-
-    print(nodatas)
-
     target_path = os.path.join(path, 'annual')
     if not os.path.exists(target_path):
         os.mkdir(target_path)
 
-    raster_paths = [(path, 1) for path in base_rasters]
+    def _avg(*months):
+        output = numpy.full(months[0].shape,0,dtype=numpy.float32)
+        for month in months:
+            output += month
+        output /= len(months)
+        output[output==0]=-1
+        return(output)
+    pygeoprocessing.raster_map(_avg, base_rasters, 'annual_precip.tif',target_nodata=-1)
     #pygeoprocessing.geoprocessing.raster_calculator(
      #   raster_paths, _sum, target_path, gdal.GDT_Float32, float(NODATA_FLOAT32))
 
