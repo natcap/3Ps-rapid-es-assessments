@@ -2,6 +2,19 @@
 
 This script was built by request from Nadine to process monthly climate data
 from NetCDF files that have daily pixel values starting at Jan 1, 1850.
+
+To use this script, call with the following arguments:
+    Arg 1: The absolute path to the netCDF file to process.  This file must
+        have a metadata item labeled "time#units" that contains the first date
+        of the of the dataset in the format "days since YYYY-MM-DD".
+        Band indexes must be sequential, with the band index being days since
+        the start date.
+    Arg 2: The range of years to process, in the format "YYYY:YYYY".
+    Arg 3: The method to use to aggregate the daily data to monthly data, in
+        the format "month_method:year_method".  The method can be either "sum"
+        or "mean".  The month method indicates how to to aggregate the daily
+        layers to a single monthly layer.  The year method indicates how to
+        aggregate the monthly layer across all the years in the range.
 """
 import calendar
 import datetime
@@ -21,7 +34,7 @@ LOGGER = logging.getLogger(__name__)
 gdal.SetConfigOption('GDAL_MAX_BAND_COUNT', "100000")
 
 
-def main(filepath, years, method):
+def main(filepath, years, month_method, year_method):
     basename = os.path.basename(os.path.splitext(filepath)[0])
     ds = gdal.Open(f'NETCDF:"{filepath}"', gdal.GA_ReadOnly)
 
@@ -53,8 +66,11 @@ def main(filepath, years, method):
                 array_mask = ~numpy.isclose(band_array, nodata)
                 sum_array[array_mask] += band_array[array_mask]
 
+            if month_method == 'mean':
+                sum_array /= calendar.monthrange(year, month)[1]
+
         monthly_sum += sum_array
-        if method == 'mean':
+        if year_method == 'mean':
             result = monthly_sum / len(years)
         else:
             result = monthly_sum
@@ -72,12 +88,12 @@ def main(filepath, years, method):
 
 
 if __name__ == '__main__':
+    print(sys.argv)
     years_string = sys.argv[2]
     years = [int(year) for year in years_string.split(':')]
-    method = sys.argv[3]
-    if method not in {'sum', 'mean'}:
-        raise ValueError(f'Unknown method: {method}')
-    try:
-        main(sys.argv[1], list(range(years[0], years[1]+1)), method)
-    except IndexError:
-        main('/Users/jdouglass/Downloads/GFDL-ESM4_hist_plus_ssp126_pet.nc')
+    month_method, year_method = sys.argv[3].split(":")
+    for method in [month_method, year_method]:
+        if method not in {'sum', 'mean'}:
+            raise ValueError(f'Unknown method: {method}')
+    main(sys.argv[1], list(range(years[0], years[1]+1)), month_method,
+         year_method)
