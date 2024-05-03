@@ -22,7 +22,7 @@ $(TILESDIR):
 	mkdir $@
 
 $(GMTED_URLS_FILE):
-	python $(ROOT_DIR)/build-tile-urls.py > $@
+	python3 $(ROOT_DIR)/build-tile-urls.py > $@
 
 $(ALLTIFFS): $(GMTED_URLS_FILE)
 	$(SETCACHE) gdalbuildvrt $(subst .tif,.vrt,$@) $(addprefix /vsicurl/,$(shell grep $(subst gmted2010-,,$(notdir $@)) $(GMTED_URLS_FILE)))
@@ -34,10 +34,8 @@ $(ALLTIFFS): $(GMTED_URLS_FILE)
 .PHONY: submit all sherlock-submit
 all: $(ALLTIFFS)
 
-	# for mode in mea std med min dsc bln max; do \
-
 submit:
-	for mode in mea std med min dsc bln; do 
+	for mode in mea std med min dsc bln max; do \
 		sbatch $(SBATCH_PARAMS) --job-name=GMTED2010-$$mode-075 --time=4:00:00 $(ROOT_DIR)/sherlock.sbatch gmted2010-$${mode}075.tif; \
 		sbatch $(SBATCH_PARAMS) --job-name=GMTED2010-$$mode-150 --time=2:00:00 $(ROOT_DIR)/sherlock.sbatch gmted2010-$${mode}150.tif; \
 		sbatch $(SBATCH_PARAMS) --job-name=GMTED2010-$$mode-300 --time=1:00:00 $(ROOT_DIR)/sherlock.sbatch gmted2010-$${mode}300.tif; \
@@ -46,6 +44,3 @@ submit:
 sherlock-submit:
 	mkdir -p $(SCRATCH)/gmted2010 || echo "directory already exists"
 	make submit
-
-oak-transfer:
-	$(ROOT_DIR)/copy-to-oak.sh
