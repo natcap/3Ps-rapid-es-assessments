@@ -8,7 +8,7 @@ GTIFF_CREATE_OPTS := -co "COMPRESS=LZW" \
 					 -co "SPARSE_OK=False" \
 					 -co "BIGTIFF=YES" \
 					 -co "NUM_THREADS=$(N_WORKERS)"
-ALLTIFFS          := $(shell echo gmted2010-{mea,std,med,min,dsc,bln}{075,150,300}.tif)
+ALLTIFFS          := $(shell echo gmted2010-{mea,std,med,min,dsc,bln,max}{075,150,300}.tif)
 SBATCH_PARAMS     := --output=$(SCRATCH)/slurm-logfiles/slurm-%j.%x.out
 
 # For debugging.  Run `make print-VARIABLE` to see the value of a variable.
@@ -34,11 +34,10 @@ $(ALLTIFFS): $(GMTED_URLS_FILE)
 .PHONY: submit all sherlock-submit
 all: $(ALLTIFFS)
 
-	# for mode in mea std med min dsc bln; do \
+	# for mode in mea std med min dsc bln max; do \
 
 submit:
-# for mode in mea std med min dsc bln; do 
-	for mode in max; do \
+	for mode in mea std med min dsc bln; do 
 		sbatch $(SBATCH_PARAMS) --job-name=GMTED2010-$$mode-075 --time=4:00:00 $(ROOT_DIR)/sherlock.sbatch gmted2010-$${mode}075.tif; \
 		sbatch $(SBATCH_PARAMS) --job-name=GMTED2010-$$mode-150 --time=2:00:00 $(ROOT_DIR)/sherlock.sbatch gmted2010-$${mode}150.tif; \
 		sbatch $(SBATCH_PARAMS) --job-name=GMTED2010-$$mode-300 --time=1:00:00 $(ROOT_DIR)/sherlock.sbatch gmted2010-$${mode}300.tif; \
