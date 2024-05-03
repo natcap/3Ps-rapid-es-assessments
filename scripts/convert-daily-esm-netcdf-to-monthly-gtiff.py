@@ -6,6 +6,7 @@ from NetCDF files that have daily pixel values starting at Jan 1, 1850.
 import calendar
 import datetime
 import logging
+import os
 import sys
 
 import numpy
@@ -20,9 +21,9 @@ LOGGER = logging.getLogger(__name__)
 gdal.SetConfigOption('GDAL_MAX_BAND_COUNT', "100000")
 
 
-def main(filepath):
+def main(filepath, years, method):
+    basename = os.path.basename(os.path.splitext(filepath)[0])
     ds = gdal.Open(f'NETCDF:"{filepath}"', gdal.GA_ReadOnly)
-    print(ds.RasterXSize, ds.RasterYSize)
 
     # The datestamps I'm getting are formatted 1850-1-1, which is not ISO-8601
     malformed_date = ds.GetMetadataItem('time#units').split(' ')[2]
@@ -34,34 +35,49 @@ def main(filepath):
     final_day = first_day + datetime.timedelta(days=band_count)
     LOGGER.info(f'Layers available until {final_day}')
 
-    # To get something working, I'm assuming that I just need to sum all the
-    # bands within a month.
-    target_year = 2024
-    target_month = 5
-    sum_array = numpy.zeros(
-        (ds.RasterYSize, ds.RasterXSize), dtype=numpy.float32)
-    for day in range(1, calendar.monthrange(target_year, target_month)[1]+1):
-        date = datetime.date(year=target_year, month=target_month, day=day)
-        band_index = (date - first_day).days + 1  # GDAL starts bands at 1
-        band = ds.GetRasterBand(band_index)
-        nodata = band.GetNoDataValue()
-        band_array = ds.GetRasterBand(band_index).ReadAsArray()
-        array_mask = ~numpy.isclose(band_array, nodata)
-        sum_array[array_mask] += band_array[array_mask]
+    years_label = f'{min(years)}-{max(years)}'
+    for month in range(1, 13):
+        monthly_sum = numpy.zeros((ds.RasterYSize, ds.RasterXSize), dtype=numpy.float32)
 
-    # Write out the calculated array to a new GeoTiff.
-    driver = gdal.GetDriverByName('GTiff')
-    target_ds = driver.Create(
-        f'{target_year}-{target_month:02d}.tif',
-        ds.RasterXSize, ds.RasterYSize, 1, gdal.GDT_Float32)
-    target_ds.SetProjection(ds.GetProjection())
-    target_ds.SetGeoTransform(ds.GetGeoTransform())
-    target_band = target_ds.GetRasterBand(1)
-    target_band.WriteArray(sum_array)
+        for year in years:
+            # To get something working, I'm assuming that I just need to sum all the
+            # bands within a month.
+            sum_array = numpy.zeros(
+                (ds.RasterYSize, ds.RasterXSize), dtype=numpy.float32)
+            for day in range(1, calendar.monthrange(year, month)[1]+1):
+                date = datetime.date(year=year, month=month, day=day)
+                band_index = (date - first_day).days + 1  # GDAL starts bands at 1
+                band = ds.GetRasterBand(band_index)
+                nodata = band.GetNoDataValue()
+                band_array = ds.GetRasterBand(band_index).ReadAsArray()
+                array_mask = ~numpy.isclose(band_array, nodata)
+                sum_array[array_mask] += band_array[array_mask]
+
+        monthly_sum += sum_array
+        if method == 'mean':
+            result = monthly_sum / len(years)
+        else:
+            result = monthly_sum
+
+        # Write out the calculated array to a new GeoTiff.
+        driver = gdal.GetDriverByName('GTiff')
+        filename = f'{basename}-{years_label}-{month:02d}.tif'
+        LOGGER.info("Writing out %s", filename)
+        target_ds = driver.Create(
+            filename, ds.RasterXSize, ds.RasterYSize, 1, gdal.GDT_Float32)
+        target_ds.SetProjection(ds.GetProjection())
+        target_ds.SetGeoTransform(ds.GetGeoTransform())
+        target_band = target_ds.GetRasterBand(1)
+        target_band.WriteArray(result)
 
 
 if __name__ == '__main__':
+    years_string = sys.argv[2]
+    years = [int(year) for year in years_string.split(':')]
+    method = sys.argv[3]
+    if method not in {'sum', 'mean'}:
+        raise ValueError(f'Unknown method: {method}')
     try:
-        main(sys.argv[1])
+        main(sys.argv[1], list(range(years[0], years[1]+1)), method)
     except IndexError:
         main('/Users/jdouglass/Downloads/GFDL-ESM4_hist_plus_ssp126_pet.nc')
