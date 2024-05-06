@@ -2,7 +2,6 @@ import os
 import requests
 import io
 import zipfile
-from osgeo import gdal
 import sys
 import glob
 from pathlib import Path
@@ -13,7 +12,6 @@ import logging
 logging.basicConfig(level=logging.INFO)
 file_path = sys.argv[1]
 url = r'https://biogeo.ucdavis.edu/data/worldclim/v2.1/base/wc2.1_30s_prec.zip'
-NODATA_FLOAT32 = numpy.finfo(numpy.float32).min
 
 directories = {'monthly':'monthly_path','annual':'annual_path'}
 for d,p in directories.items():
@@ -41,7 +39,7 @@ def sum_annual_precip():
         for month in months:
             output += month
         output /= len(months)
-        output[output==0]=-1
+        #output[output==0]=-1
         return(output)
     pygeoprocessing.raster_map(_avg, base_rasters, target_path ,target_nodata=-1)
     #pygeoprocessing.geoprocessing.raster_calculator(
