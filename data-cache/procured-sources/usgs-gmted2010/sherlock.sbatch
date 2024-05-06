@@ -19,4 +19,4 @@ if [ ! -f "$SCRATCH/gmted2010/gmted2010-urls.txt" ]; then
     make -f "$SLURM_SUBMIT_DIR/Makefile" -C "$SCRATCH/gmted2010" gmted2010-urls.txt
 fi
 
-make -j "$SLURM_CPUS_PER_TASK" -f "$SLURM_SUBMIT_DIR/Makefile" -C "$SCRATCH/gmted2010" "$1"
+make -j "$SLURM_CPUS_PER_TASK" -f "$SLURM_SUBMIT_DIR/Makefile" -C "$SCRATCH/gmted2010" all
