@@ -32,7 +32,7 @@ def sum_annual_precip():
     
     print(base_rasters)
 
-    target_path = os.path.join(annual_path, 'annual_precip.tif')
+    target_path = os.path.join(annual_path, 'wc2.1_30s_annual_precip.tif')
 
     def _avg(*months):
         output = numpy.full(months[0].shape,0,dtype=numpy.float32)
