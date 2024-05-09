@@ -41,8 +41,6 @@ SRS.ImportFromEPSG(4326)
 SRS_WKT = SRS.ExportToWkt()
 del SRS
 
-# TODO: function to extract monthly data
-# TODO: function to write raster
 
 def read_first_last_days(netcdf_filepath):
     try:
