@@ -1,5 +1,6 @@
 SHELL := bash
 ASTER_URLS_FILE := aster30m_urls.txt
+ASTER_PATHS := aster_tif_paths.txt
 ASTER_URLS_SOURCE := https://www.opentopodata.org/datasets/$(ASTER_URLS_FILE)
 BASE_URL := https://e4ftl01.cr.usgs.gov/ASTT/ASTGTM.003/2000.03.01/
 N_WORKERS := 8
@@ -13,7 +14,7 @@ SETCACHE := GDAL_CACHEMAX=2048
 
 # https://stackoverflow.com/a/2547973
 ROOT_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
-TILESDIR := tiles
+TILESDIR := $(SCRATCH)/aster-v3-1s/tiles
 
 
 $(ASTER_URLS_FILE):
@@ -30,8 +31,12 @@ download-batch: $(TILESDIR)
 		--user=\"$(NASA_EARTHDATA_USERNAME)\" --password=\"$(NASA_EARTHDATA_PASSWORD)\" \
 		--directory-prefix=$(TILESDIR) {}"
 
+create-paths:
+	python3 $(ROOT_DIR)/aster_tif_paths.py $(TILESDIR) > $(ASTER_PATHS)
+
 aster.vrt:
-	gdalbuildvrt $@ /vsizip/$(TILESDIR)/*.zip/*_dem.tif
+	gdalbuildvrt $@ -input_file_list $(ROOT_DIR)/$(ASTER_PATHS)
+
 
 aster-v3-1s.tif: aster.vrt
 	$(SETCACHE) gdal_translate -ot "Int16" $(GTIFF_CREATE_OPTS) $< $@
