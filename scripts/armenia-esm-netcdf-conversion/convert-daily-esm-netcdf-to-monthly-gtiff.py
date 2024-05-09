@@ -25,6 +25,7 @@ import sys
 
 import numpy
 from osgeo import gdal
+from osgeo import osr
 
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger(__name__)
@@ -33,6 +34,29 @@ LOGGER = logging.getLogger(__name__)
 # GDAL by default limits the band count to 32768, but the NetCDF files we're
 # using have WAY more bands than that in these NetCDF files.
 gdal.SetConfigOption('GDAL_MAX_BAND_COUNT', "100000")
+
+# NetCDFs generally don't provide a spatial reference, so we'll assume WGS84.
+SRS = osr.SpatialReference()
+SRS.ImportFromEPSG(4326)
+SRS_WKT = SRS.ExportToWkt()
+del SRS
+
+# TODO: function to extract monthly data
+# TODO: function to write raster
+
+def read_first_last_days(netcdf_filepath):
+    try:
+        ds = gdal.Open(f'NETCDF:"{netcdf_filepath}"', gdal.GA_ReadOnly)
+        # The datestamps I'm getting are formatted 1850-1-1, which is not ISO-8601
+        malformed_date = ds.GetMetadataItem('time#units').split(' ')[2]
+        year, month, day = malformed_date.split('-')
+        first_day = datetime.date(int(year), int(month), int(day))
+
+        band_count = ds.RasterCount
+        final_day = first_day + datetime.timedelta(days=band_count)
+        return first_day, final_day
+    finally:
+        ds = None
 
 
 def main(filepath, years, month_method, year_method,
@@ -47,24 +71,18 @@ def main(filepath, years, month_method, year_method,
             f'Unexpected precipitation units: {precip_units}. "mm d-1" '
             'required.')
 
-    # The datestamps I'm getting are formatted 1850-1-1, which is not ISO-8601
-    malformed_date = ds.GetMetadataItem('time#units').split(' ')[2]
-    year, month, day = malformed_date.split('-')
-    first_day = datetime.date(int(year), int(month), int(day))
+    first_day, final_day = read_first_last_days(filepath)
     LOGGER.info(f'First day: {first_day}')
-
-    band_count = ds.RasterCount
-    final_day = first_day + datetime.timedelta(days=band_count)
     LOGGER.info(f'Layers available until {final_day}')
 
     # map of {month: {year: rain_events}}
     monthly_rain_events = collections.defaultdict(collections.Counter)
     years_label = f'{min(years)}-{max(years)}'
     for month in range(1, 13):
-        monthly_sum = numpy.zeros((ds.RasterYSize, ds.RasterXSize), dtype=numpy.float32)
+        sum_of_this_month = numpy.zeros((ds.RasterYSize, ds.RasterXSize), dtype=numpy.float32)
 
         for year in years:
-            sum_array = numpy.zeros(
+            daily_sum_array = numpy.zeros(
                 (ds.RasterYSize, ds.RasterXSize), dtype=numpy.float32)
             for day in range(1, calendar.monthrange(year, month)[1]+1):
                 date = datetime.date(year=year, month=month, day=day)
@@ -73,7 +91,7 @@ def main(filepath, years, month_method, year_method,
                 nodata = band.GetNoDataValue()
                 band_array = ds.GetRasterBand(band_index).ReadAsArray()
                 array_mask = ~numpy.isclose(band_array, nodata)
-                sum_array[array_mask] += band_array[array_mask]
+                daily_sum_array[array_mask] += band_array[array_mask]
 
                 # SWY requires that rain events only count if daily
                 # precipitation exceeds 0.1mm.
@@ -82,21 +100,28 @@ def main(filepath, years, month_method, year_method,
                         monthly_rain_events[month][year] += 1
 
             if month_method == 'mean':
-                sum_array /= calendar.monthrange(year, month)[1]
+                daily_sum_array /= calendar.monthrange(year, month)[1]
 
-        monthly_sum += sum_array
+            sum_of_this_month += daily_sum_array
         if year_method == 'mean':
-            result = monthly_sum / len(years)
+            result = sum_of_this_month / len(years)
         else:
-            result = monthly_sum
+            result = sum_of_this_month
 
         # Write out the calculated array to a new GeoTiff.
         driver = gdal.GetDriverByName('GTiff')
         filename = f'{basename}-{years_label}-{month:02d}.tif'
-        LOGGER.info("Writing out %s", filename)
+        array_min = numpy.min(result[result >= 0])
+        array_max = numpy.max(result[result >= 0])
+        array_mean = numpy.average(result[result >= 0])
+        LOGGER.info(f"Writing out {filename} min={array_min:>14.10f}  "
+                    f"max={array_max:>14.10f}  mean={array_mean:>14.10f}")
         target_ds = driver.Create(
             filename, ds.RasterXSize, ds.RasterYSize, 1, gdal.GDT_Float32)
-        target_ds.SetProjection(ds.GetProjection())
+        source_projection = ds.GetProjection()
+        if not source_projection:
+            source_projection = SRS_WKT
+        target_ds.SetProjection(source_projection)
         target_ds.SetGeoTransform(ds.GetGeoTransform())
         target_band = target_ds.GetRasterBand(1)
         target_band.WriteArray(result)
@@ -125,5 +150,7 @@ if __name__ == '__main__':
     for method in [month_method, year_method]:
         if method not in {'sum', 'mean'}:
             raise ValueError(f'Unknown method: {method}')
+    print("Month aggregation method:", month_method)
+    print("Year aggregation method:", year_method)
     main(sys.argv[1], list(range(years[0], years[1]+1)), month_method,
          year_method, write_rain_events_table=write_rain_events_table)
