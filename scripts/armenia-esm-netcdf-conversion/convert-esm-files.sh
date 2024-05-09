@@ -18,7 +18,7 @@ do
             "$DIR/GFDL-ESM4_hist_plus_${suffix}_pet.nc" "$yearrange" "mean:mean"
 
         python convert-daily-esm-netcdf-to-monthly-gtiff.py \
-            "$DIR/GFDL-ESM4_hist_plus_${suffix}_pr.nc" "$yearrange" "sum:mean"
+            "$DIR/GFDL-ESM4_hist_plus_${suffix}_pr.nc" "$yearrange" "sum:mean" "True"
 
         python convert-daily-esm-netcdf-to-monthly-gtiff.py \
             "$DIR/GFDL-ESM4_hist_plus_${suffix}_tas.nc" "$yearrange" "mean:mean"
