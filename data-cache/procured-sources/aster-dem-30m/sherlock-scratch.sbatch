@@ -28,6 +28,8 @@ scratch_make="make N_WORKERS=$SLURM_CPUS_PER_TASK -C $SCRATCH_DIR -f $(pwd)/Make
 
 $scratch_make download-batch
 
+$scratch_make create-paths
+
 print_now
 $scratch_make aster-v3-1s.tif
 cp $SCRATCH_DIR/aster-v3-1s.tif $TARGET_OAK_DIR &

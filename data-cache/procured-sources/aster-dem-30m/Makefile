@@ -14,7 +14,7 @@ SETCACHE := GDAL_CACHEMAX=2048
 
 # https://stackoverflow.com/a/2547973
 ROOT_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
-TILESDIR := $(SCRATCH)/aster-v3-1s/tiles
+TILESDIR := tiles
 
 
 $(ASTER_URLS_FILE):
@@ -36,7 +36,6 @@ create-paths:
 
 aster.vrt:
 	gdalbuildvrt $@ -input_file_list $(ROOT_DIR)/$(ASTER_PATHS)
-
 
 aster-v3-1s.tif: aster.vrt
 	$(SETCACHE) gdal_translate -ot "Int16" $(GTIFF_CREATE_OPTS) $< $@
