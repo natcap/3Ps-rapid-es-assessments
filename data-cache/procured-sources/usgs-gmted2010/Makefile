@@ -9,6 +9,10 @@ GTIFF_CREATE_OPTS := -co "COMPRESS=LZW" \
 					 -co "BIGTIFF=YES" \
 					 -co "NUM_THREADS=$(N_WORKERS)"
 ALLTIFFS          := $(shell echo gmted2010-{mea,std,med,min,dsc,bln}{075,150,300}.tif)
+ALLVRTS           := $(subst .tif,.vrt,$(ALLTIFFS))
+ALLOVERVIEWS      := $(addsuffix .ovr,$(ALLTIFFS))
+ALLCOLORIZED      := $(subst .tif,-colorized.tif,$ALLTIFFS)
+ALLXYZTILES       := $(subst .tif,.xyztiles,$(ALLTIFFS))
 SBATCH_PARAMS     := --output=$(SCRATCH)/slurm-logfiles/slurm-%j.%x.out
 
 # For debugging.  Run `make print-VARIABLE` to see the value of a variable.
@@ -24,12 +28,20 @@ $(TILESDIR):
 $(GMTED_URLS_FILE):
 	python $(ROOT_DIR)/build-tile-urls.py > $@
 
+$(ALLVRTS): $(GMTED_URLS_FILE)
+	$(SETCACHE) gdalbuildvrt $@ $(addprefix /vsicurl/,$(shell grep $(subst gmted2010-,,$(notdir $@)) $(GMTED_URLS_FILE)))
+
 $(ALLTIFFS): $(GMTED_URLS_FILE)
-	$(SETCACHE) gdalbuildvrt $(subst .tif,.vrt,$@) $(addprefix /vsicurl/,$(shell grep $(subst gmted2010-,,$(notdir $@)) $(GMTED_URLS_FILE)))
 	$(SETCACHE) gdal_translate -ot "Int16" $(GTIFF_CREATE_OPTS) $(subst .tif,.vrt,$@) $@
-	$(SETCACHE) gdaladdo -ro --config COMPRESS_OVERVIEW LZW $@
-	$(SETCACHE) gdaldem color-relief -alpha $(GTIFF_CREATE_OPTS) $(subst .tif,-colorized.tif,$@) $(ROOT_DIR)/colorprofile.txt $@
-	$(SETCACHE) gdal2tiles.py --xyz -r near --zoom=1-8 --processes=$(N_WORKERS) $(subst .tif,-colorized.tif,$@) $(subst .tif,.xyztiles,$@)
+
+$(ALLOVERVIEWS): $(ALLTIFFS)
+	$(SETCACHE) gdaladdo -ro --config COMPRESS_OVERVIEW LZW $(subst .tif.ovr,.tif,$@)
+
+$(ALLCOLORIZED): $(ALLTIFFS)
+	$(SETCACHE) gdaldem color-relief -alpha $(GTIFF_CREATE_OPTS) $(subst .tif,-colorized.tif,$@) $(ROOT_DIR)/colorprofile.txt $(subst -colorized,,$@)
+
+$(ALLXYZTILES): $(ALLCOLORIZED)
+	$(SETCACHE) gdal2tiles.py --xyz -r near --zoom=1-8 --processes=$(N_WORKERS) $(subst .xyztiles,-colorized.tif,$@) $@
 
 .PHONY: submit all sherlock-submit
 all: $(ALLTIFFS)
