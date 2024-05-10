@@ -28,7 +28,7 @@ $(ALLTIFFS): $(GMTED_URLS_FILE)
 	$(SETCACHE) gdalbuildvrt $(subst .tif,.vrt,$@) $(addprefix /vsicurl/,$(shell grep $(subst gmted2010-,,$(notdir $@)) $(GMTED_URLS_FILE)))
 	$(SETCACHE) gdal_translate -ot "Int16" $(GTIFF_CREATE_OPTS) $(subst .tif,.vrt,$@) $@
 	$(SETCACHE) gdaladdo -ro --config COMPRESS_OVERVIEW LZW $@
-	$(SETCACHE) gdaldem color-relief -alpha $(GTIFF_CREATE_OPTS) $(subst .tif,-colorized.tif,$@) $(ROOT_DIR)/colorprofile.txt $@
+	$(SETCACHE) gdaldem color-relief -alpha $(GTIFF_CREATE_OPTS) $@ $(ROOT_DIR)/colorprofile.txt $(subst .tif,-colorized.tif,$@)
 	$(SETCACHE) gdal2tiles.py --xyz -r near --zoom=1-8 --processes=$(N_WORKERS) $(subst .tif,-colorized.tif,$@) $(subst .tif,.xyztiles,$@)
 
 .PHONY: submit all sherlock-submit
@@ -39,6 +39,7 @@ submit:
 		sbatch $(SBATCH_PARAMS) --job-name=GMTED2010-$$mode-075 --time=4:00:00 $(ROOT_DIR)/sherlock.sbatch gmted2010-$${mode}075.tif; \
 		sbatch $(SBATCH_PARAMS) --job-name=GMTED2010-$$mode-150 --time=2:00:00 $(ROOT_DIR)/sherlock.sbatch gmted2010-$${mode}150.tif; \
 		sbatch $(SBATCH_PARAMS) --job-name=GMTED2010-$$mode-300 --time=1:00:00 $(ROOT_DIR)/sherlock.sbatch gmted2010-$${mode}300.tif; \
+		sleep 3
 	done
 
 sherlock-submit:
