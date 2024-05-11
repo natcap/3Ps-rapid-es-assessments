@@ -19,4 +19,5 @@ if [ ! -f "$SCRATCH/gmted2010/gmted2010-urls.txt" ]; then
     make -f "$SLURM_SUBMIT_DIR/Makefile" -C "$SCRATCH/gmted2010" gmted2010-urls.txt
 fi
 
-make -j "$SLURM_CPUS_PER_TASK" -f "$SLURM_SUBMIT_DIR/Makefile" -C "$SCRATCH/gmted2010" "$1"
+# Quotes around $@ work as you'd hope - each parameter is quoted individually.  See https://stackoverflow.com/a/4824637/299084
+make -j "$SLURM_CPUS_PER_TASK" -f "$SLURM_SUBMIT_DIR/Makefile" -C "$SCRATCH/gmted2010" "$@"
