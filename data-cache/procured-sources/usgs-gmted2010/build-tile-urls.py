@@ -15,7 +15,8 @@ for lyr in ("mea",  # mean
             "med",  # median
             "min",  # minimum
             "dsc",  # systematic subsample
-            "bln"):  # breakline emphasis
+            "bln",  # breakline emphasis
+            "max"): # max
     for res in ("075",   # 7.5 arcseconds
                 "150",   # 15 arcseconds
                 "300"):  # 30 arcseconds

@@ -12,7 +12,7 @@ GTIFF_CREATE_OPTS := -co "COMPRESS=LZW" \
 					 -co "SPARSE_OK=False" \
 					 -co "BIGTIFF=YES" \
 					 -co "NUM_THREADS=$(N_WORKERS)"
-ALLTIFFS          := $(shell echo gmted2010-{mea,std,med,min,dsc,bln}{075,150,300}.tif)
+ALLTIFFS          := $(shell echo gmted2010-{mea,std,med,min,dsc,bln,max}{075,150,300}.tif)
 ALLVRTS           := $(subst .tif,.vrt,$(ALLTIFFS))
 ALLOVERVIEWS      := $(addsuffix .ovr,$(ALLTIFFS))
 ALLCOLORIZED      := $(subst .tif,-colorized.tif,$ALLTIFFS)
@@ -30,7 +30,7 @@ $(TILESDIR):
 	mkdir $@
 
 $(GMTED_URLS_FILE):
-	python $(ROOT_DIR)/build-tile-urls.py > $@
+	python3 $(ROOT_DIR)/build-tile-urls.py > $@
 
 gmted2010-%.vrt: $(GMTED_URLS_FILE)
 	$(SETCACHE) gdalbuildvrt $@ $(addprefix /vsicurl/,$(shell grep $(subst gmted2010-,,$(notdir $(subst .vrt,.tif,$@))) $(GMTED_URLS_FILE)))

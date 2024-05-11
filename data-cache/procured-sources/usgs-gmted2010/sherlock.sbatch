@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#SBATCH --time=8:00:00
+#SBATCH --time=11:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
 #SBATCH --mem-per-cpu=4G
@@ -20,4 +20,5 @@ if [ ! -f "$SCRATCH/gmted2010/gmted2010-urls.txt" ]; then
 fi
 
 # Quotes around $@ work as you'd hope - each parameter is quoted individually.  See https://stackoverflow.com/a/4824637/299084
+# NOTE: if we want to run with "all", then specify `sbatch sherlock.sbatch all`
 make -j "$SLURM_CPUS_PER_TASK" -f "$SLURM_SUBMIT_DIR/Makefile" -C "$SCRATCH/gmted2010" "$@"
