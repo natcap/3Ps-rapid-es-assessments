@@ -12,9 +12,9 @@ function print_now {
     echo "The time right now is $(date)"
 }
 
-TARGET_OAK_DIR=$OAK/global-dataset-cache/world-clim
+TARGET_OAK_DIR=$OAK/global-dataset-cache/Internal_Private/world-clim
 
 module load physics gdal/3.5.2
 module load python/3.9.0
 
-python3 procure-precip-data.py "$OAK/global-dataset-cache/world-clim"
+python3 procure-precip-data.py "$OAK/global-dataset-cache/Internal_Private/world-clim"

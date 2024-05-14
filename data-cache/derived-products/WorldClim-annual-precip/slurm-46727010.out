@@ -1,0 +1,24 @@
+/home/users/epavia/.local/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 3.2.1'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+/home/users/epavia/.local/lib/python3.9/site-packages/pygeoprocessing/slurm_utils.py:55: UserWarning: GDAL's cache max exceeds the memory SLURM has allocated for this node. The process will probably be killed by the kernel's oom-killer. GDAL_CACHEMAX=6746287718 (interpreted as 6433.76132774353 MB), SLURM_MEM_PER_NODE=4096
+  warnings.warn(message)
+INFO:pygeoprocessing.geoprocessing:starting stats_worker
+INFO:pygeoprocessing.geoprocessing:started stats_worker <Thread(Thread-1, started daemon 139719871973120)>
+INFO:pygeoprocessing.geoprocessing:wc2.1_30s_annual_precip.tif 6.4% complete
+INFO:pygeoprocessing.geoprocessing:wc2.1_30s_annual_precip.tif 12.7% complete
+INFO:pygeoprocessing.geoprocessing:wc2.1_30s_annual_precip.tif 17.8% complete
+INFO:pygeoprocessing.geoprocessing:wc2.1_30s_annual_precip.tif 22.8% complete
+INFO:pygeoprocessing.geoprocessing:wc2.1_30s_annual_precip.tif 28.5% complete
+INFO:pygeoprocessing.geoprocessing:wc2.1_30s_annual_precip.tif 34.7% complete
+INFO:pygeoprocessing.geoprocessing:wc2.1_30s_annual_precip.tif 41.1% complete
+INFO:pygeoprocessing.geoprocessing:wc2.1_30s_annual_precip.tif 47.1% complete
+INFO:pygeoprocessing.geoprocessing:wc2.1_30s_annual_precip.tif 52.6% complete
+INFO:pygeoprocessing.geoprocessing:wc2.1_30s_annual_precip.tif 59.0% complete
+INFO:pygeoprocessing.geoprocessing:wc2.1_30s_annual_precip.tif 65.2% complete
+INFO:pygeoprocessing.geoprocessing:wc2.1_30s_annual_precip.tif 72.7% complete
+INFO:pygeoprocessing.geoprocessing:wc2.1_30s_annual_precip.tif 80.6% complete
+INFO:pygeoprocessing.geoprocessing:wc2.1_30s_annual_precip.tif 88.9% complete
+INFO:pygeoprocessing.geoprocessing:wc2.1_30s_annual_precip.tif 95.9% complete
+INFO:pygeoprocessing.geoprocessing:100.0% complete
+INFO:pygeoprocessing.geoprocessing:Waiting for raster stats worker result.
+['/oak/stanford/groups/gdaily/global-dataset-cache/Internal_Private/world-clim/monthly/wc2.1_30s_prec_03.tif', '/oak/stanford/groups/gdaily/global-dataset-cache/Internal_Private/world-clim/monthly/wc2.1_30s_prec_09.tif', '/oak/stanford/groups/gdaily/global-dataset-cache/Internal_Private/world-clim/monthly/wc2.1_30s_prec_05.tif', '/oak/stanford/groups/gdaily/global-dataset-cache/Internal_Private/world-clim/monthly/wc2.1_30s_prec_11.tif', '/oak/stanford/groups/gdaily/global-dataset-cache/Internal_Private/world-clim/monthly/wc2.1_30s_prec_04.tif', '/oak/stanford/groups/gdaily/global-dataset-cache/Internal_Private/world-clim/monthly/wc2.1_30s_prec_10.tif', '/oak/stanford/groups/gdaily/global-dataset-cache/Internal_Private/world-clim/monthly/wc2.1_30s_prec_06.tif', '/oak/stanford/groups/gdaily/global-dataset-cache/Internal_Private/world-clim/monthly/wc2.1_30s_prec_02.tif', '/oak/stanford/groups/gdaily/global-dataset-cache/Internal_Private/world-clim/monthly/wc2.1_30s_prec_08.tif', '/oak/stanford/groups/gdaily/global-dataset-cache/Internal_Private/world-clim/monthly/wc2.1_30s_prec_07.tif', '/oak/stanford/groups/gdaily/global-dataset-cache/Internal_Private/world-clim/monthly/wc2.1_30s_prec_01.tif', '/oak/stanford/groups/gdaily/global-dataset-cache/Internal_Private/world-clim/monthly/wc2.1_30s_prec_12.tif']

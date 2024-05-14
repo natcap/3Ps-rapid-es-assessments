@@ -34,21 +34,21 @@ def sum_annual_precip():
 
     target_path = os.path.join(annual_path, 'wc2.1_30s_annual_precip.tif')
 
-    def _avg(*months):
+    def _sum(*months):
         output = numpy.full(months[0].shape,0,dtype=numpy.float32)
         for month in months:
             output += month
-        output /= len(months)
-        #output[output==0]=-1
+        #output /= len(months) #I previously believed we need to take an average. I am keeping this in case we need to at another time
+        output[output==0]=-1
         return(output)
-    pygeoprocessing.raster_map(_avg, base_rasters, target_path ,target_nodata=-1)
+    pygeoprocessing.raster_map(_sum, base_rasters, target_path ,target_nodata=-1)
     #pygeoprocessing.geoprocessing.raster_calculator(
      #   raster_paths, _sum, target_path, gdal.GDT_Float32, float(NODATA_FLOAT32))
 
 
 def main(file_path):
 
-    read_url()
+    #read_url()
     sum_annual_precip()
 
 
