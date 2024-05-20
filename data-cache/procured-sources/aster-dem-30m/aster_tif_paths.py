@@ -14,7 +14,7 @@ def extract_paths(tiles_dir):
             for name in zipObj.infolist():
                 if name.filename.endswith("_dem.tif"):
                     file=str(name.filename)
-                    final_path = '/vsizip/'+zip+'/'+file
+                    final_path = f'/vsizip/{zip}/{file}'
                     tiffiles.append(final_path)
 
     print(*tiffiles, sep='\n')
