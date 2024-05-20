@@ -1,1 +1,2 @@
-data-cache/procured-sources/aster-dem-30m/slurm-46504591.out
+**/slurm-*.out
+data-cache/procured-sources/aster-dem-30m/aster_tif_paths.txt

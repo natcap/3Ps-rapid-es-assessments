@@ -26,17 +26,17 @@ mkdir $SCRATCH_DIR || echo "Dir already exists: $SCRATCH_DIR"
 mkdir -p $SCRATCH_TILES_DIR || echo "Dir already exists: $SCRATCH_TILES_DIR"
 scratch_make="make N_WORKERS=$SLURM_CPUS_PER_TASK -C $SCRATCH_DIR -f $(pwd)/Makefile"
 
-#$scratch_make download-batch
+$scratch_make download-batch
 
-#$scratch_make create-paths
+$scratch_make create-paths
 
-#print_now
-#$scratch_make aster-v3-1s.tif
-#cp $SCRATCH_DIR/aster-v3-1s.tif $TARGET_OAK_DIR &
+print_now
+$scratch_make aster-v3-1s.tif
+cp $SCRATCH_DIR/aster-v3-1s.tif $TARGET_OAK_DIR &
 
-#print_now
-#$scratch_make aster-v3-1s.tif.ovr
-#cp $SCRATCH_DIR/aster-v3-1s.tif.ovr $TARGET_OAK_DIR &
+print_now
+$scratch_make aster-v3-1s.tif.ovr
+cp $SCRATCH_DIR/aster-v3-1s.tif.ovr $TARGET_OAK_DIR &
 
 print_now
 $scratch_make SETCACHE="singularity run --env GDAL_CACHEMAX=2048 docker://ghcr.io/natcap/devstack@sha256:961c937a55ac8ff99219afeffe0f8509e4f142061cd3302c8133dfbe94574657" xyztiles

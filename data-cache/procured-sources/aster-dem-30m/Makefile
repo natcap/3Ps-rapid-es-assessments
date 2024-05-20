@@ -2,7 +2,6 @@ SHELL := bash
 ASTER_URLS_FILE := aster30m_urls.txt
 ASTER_PATHS := aster_tif_paths.txt
 ASTER_URLS_SOURCE := https://www.opentopodata.org/datasets/$(ASTER_URLS_FILE)
-BASE_URL := https://e4ftl01.cr.usgs.gov/ASTT/ASTGTM.003/2000.03.01/
 N_WORKERS := 8
 GTIFF_CREATE_OPTS := -co "COMPRESS=LZW" \
 					 -co "PREDICTOR=2" \
