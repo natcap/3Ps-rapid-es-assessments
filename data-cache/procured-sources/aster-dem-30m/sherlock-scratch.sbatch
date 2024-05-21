@@ -16,6 +16,7 @@ function print_now {
 
 module load physics gdal/3.5.2
 module load python/3.9.0
+module load py-gdal-utils
 
 TARGET_OAK_DIR=$OAK/global-dataset-cache/aster-v3-1s
 mkdir -p $TARGET_OAK_DIR || echo "Directory already exists: $TARGET_OAK_DIR"
@@ -39,7 +40,7 @@ $scratch_make aster-v3-1s.tif.ovr
 cp $SCRATCH_DIR/aster-v3-1s.tif.ovr $TARGET_OAK_DIR &
 
 print_now
-$scratch_make SETCACHE="singularity run --env GDAL_CACHEMAX=2048 docker://ghcr.io/natcap/devstack@sha256:961c937a55ac8ff99219afeffe0f8509e4f142061cd3302c8133dfbe94574657" xyztiles
+$scratch_make xyztiles
 print_now
 cp -rv $SCRATCH_DIR/xyztiles $TARGET_OAK_DIR
 print_now
