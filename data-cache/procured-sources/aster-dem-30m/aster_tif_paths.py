@@ -14,7 +14,7 @@ def extract_paths(tiles_dir):
         tiles_dir (path): the path to the directory containing the ASTER zipfiles.
 
     Returns:
-        A txt file listing all ASTER geotiff tiles.
+        Prints a list of all ASTER geotiff tiles to standard out.
     """
 
     tiles_dir = os.path.abspath(tiles_dir)
