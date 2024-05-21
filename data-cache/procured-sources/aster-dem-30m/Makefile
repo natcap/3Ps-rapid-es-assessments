@@ -30,7 +30,7 @@ download-batch: $(TILESDIR)
 		--user=\"$(NASA_EARTHDATA_USERNAME)\" --password=\"$(NASA_EARTHDATA_PASSWORD)\" \
 		--directory-prefix=$(TILESDIR) {}"
 
-create-paths:
+$(ASTER_PATHS):
 	python3 $(ROOT_DIR)/aster_tif_paths.py $(TILESDIR) > $(ASTER_PATHS)
 
 aster.vrt:
