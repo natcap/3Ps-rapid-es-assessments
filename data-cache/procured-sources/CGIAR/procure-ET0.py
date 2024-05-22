@@ -66,7 +66,7 @@ def extract_annual():
 
 
 def main(path):
-    """Convert an AOI to cell indices.
+    """Run all downloads and zipfile data extractions.
 
     Args:
         path (str): The path to the folder the zipfiles are extracted to.
