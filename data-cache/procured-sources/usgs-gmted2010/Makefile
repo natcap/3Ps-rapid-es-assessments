@@ -15,7 +15,7 @@ GTIFF_CREATE_OPTS := -co "COMPRESS=LZW" \
 ALLTIFFS          := $(shell echo gmted2010-{mea,std,med,min,dsc,bln,max}{075,150,300}.tif)
 ALLVRTS           := $(subst .tif,.vrt,$(ALLTIFFS))
 ALLOVERVIEWS      := $(addsuffix .ovr,$(ALLTIFFS))
-ALLCOLORIZED      := $(subst .tif,-colorized.tif,$ALLTIFFS)
+ALLCOLORIZED      := $(subst .tif,-colorized.tif,$(ALLTIFFS))
 ALLXYZTILES       := $(subst .tif,.xyztiles,$(ALLTIFFS))
 SBATCH_PARAMS     := --output=$(SCRATCH)/slurm-logfiles/slurm-%j.%x.out
 
@@ -43,9 +43,11 @@ gmted2010-%.tif.ovr: gmted2010-%.tif
 
 gmted2010-%-colorized.tif: gmted2010-%.tif
 	$(SETCACHE) gdaldem color-relief -alpha $(GTIFF_CREATE_OPTS) $@ $(ROOT_DIR)/colorprofile.txt $<
+	$(SETCACHE) gdalwarp -s_srs "+proj=longlat +datum=WGS84 +lon_wrap=180" -t_srs "+proj=longlat +datum=WGS84"  -te -180 -90 180 90 $@ $(subst -colorized.tif,-colorized-warp.tif,$@)
 
-gmted2010-%.xyztiles: gmted2010-%-colorized.tif
-	$(SETCACHE) gdal2tiles.py --xyz -r near --zoom=1-8 --processes=$(N_WORKERS) $(subst .xyztiles,-colorized.tif,$@) $@
+# gdal2tiles.py needs geotiffs withtin the extent of -180 -90 180 90; gdalwarp was used to create gmted2010-%-colorized-warp.tif
+gmted2010-%.xyztiles: gmted2010-%-colorized-warp.tif
+	$(SETCACHE) gdal2tiles.py --xyz -r near --zoom=1-8 --processes=$(N_WORKERS) $< $@
 
 .PHONY: submit all sherlock-submit
 all: $(ALLTIFFS) $(ALLVRTS) $(ALLOVERVIEWS) $(ALLCOLORIZED) $(ALLXYZTILES)
@@ -61,7 +63,7 @@ allcolorized: $(ALLCOLORIZED)
 allxyztiles: $(ALLXYZTILES)
 
 submit:
-	for mode in mea std med min dsc bln; do \
+	for mode in mea std med min dsc bln max; do \
 		sbatch $(SBATCH_PARAMS) --job-name=GMTED2010-$$mode-075 --time=4:00:00 $(ROOT_DIR)/sherlock.sbatch $(shell gmted2010-$${mode}075.tif{,.ovr,.xyztiles}); \
 		sleep 1; \
 		sbatch $(SBATCH_PARAMS) --job-name=GMTED2010-$$mode-150 --time=2:00:00 $(ROOT_DIR)/sherlock.sbatch $(shell gmted2010-$${mode}150.tif{,.ovr,.xyztiles}); \
