@@ -1,10 +1,6 @@
 TILESDIR          := tiles
 GMTED_URLS_FILE   := gmted2010-urls.txt
-ifdef SLURM_CPUS_PER_TASK
-	N_WORKERS := $(SLURM_CPUS_PER_TASK)
-else
-	N_WORKERS := 1
-endif
+N_WORKERS := 1
 SETCACHE          := GDAL_CACHEMAX=2048
 GTIFF_CREATE_OPTS := -co "COMPRESS=LZW" \
 					 -co "PREDICTOR=2" \
