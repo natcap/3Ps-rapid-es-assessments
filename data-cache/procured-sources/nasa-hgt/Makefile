@@ -1,6 +1,5 @@
 SHELL := bash
 NASAHGT_URLS_FILE := nasahgt_urls.txt
-NASAHGT_PATHS := nasahgt_tif_paths.txt
 NASAHGT_URLS_SOURCE := https://e4ftl01.cr.usgs.gov/MEASURES/NASADEM_HGT.001/2000.02.11/
 N_WORKERS := 8
 GTIFF_CREATE_OPTS := -co "COMPRESS=LZW" \

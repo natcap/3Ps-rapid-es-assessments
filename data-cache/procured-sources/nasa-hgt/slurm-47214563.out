@@ -1,4 +1,4 @@
-+ module load physics gdal/3.5.2
++ module load physics gdal/3.4.1
 + '[' -z '' ']'
 + case "$-" in
 + __lmod_sh_dbg=x
@@ -25,10 +25,6 @@ Shell debugging restarted
 + '[' -n x ']'
 + set +x
 Shell debugging temporarily silenced: export LMOD_SH_DBG_ON=1 for Lmod's output
-
-The following have been reloaded with a version change:
-  1) gdal/3.5.2 => gdal/3.4.1     2) proj/9.1.0 => proj/8.2.1
-
 Shell debugging restarted
 + unset __lmod_sh_dbg
 + return 0
@@ -37,6 +33,9 @@ Shell debugging restarted
 + SCRATCH_DIR=/scratch/users/epavia/nasa-hgt-v1-1s
 + SCRATCH_TILES_DIR=/scratch/users/epavia/nasa-hgt-v1-1s/tiles
 + mkdir /scratch/users/epavia/nasa-hgt-v1-1s
+mkdir: cannot create directory ‘/scratch/users/epavia/nasa-hgt-v1-1s’: File exists
++ echo 'Dir already exists: /scratch/users/epavia/nasa-hgt-v1-1s'
+Dir already exists: /scratch/users/epavia/nasa-hgt-v1-1s
 + mkdir -p /scratch/users/epavia/nasa-hgt-v1-1s/tiles
 ++ pwd
 + scratch_make='make N_WORKERS=8 -C /scratch/users/epavia/nasa-hgt-v1-1s -f /home/users/epavia/gef-rapid-es-assessments/data-cache/procured-sources/nasa-hgt/Makefile'
@@ -50,8 +49,8 @@ cat: /home/users/epavia/gef-rapid-es-assessments/data-cache/procured-sources/nas
 make: Leaving directory `/scratch/users/epavia/nasa-hgt-v1-1s'
 + print_now
 ++ date
-+ echo 'The time right now is Thu May 23 15:28:16 PDT 2024'
-The time right now is Thu May 23 15:28:16 PDT 2024
++ echo 'The time right now is Fri May 24 11:13:03 PDT 2024'
+The time right now is Fri May 24 11:13:03 PDT 2024
 + make N_WORKERS=8 -C /scratch/users/epavia/nasa-hgt-v1-1s -f /home/users/epavia/gef-rapid-es-assessments/data-cache/procured-sources/nasa-hgt/Makefile nasa-hgt-v1-1s.tif
 make: Entering directory `/scratch/users/epavia/nasa-hgt-v1-1s'
 gdalbuildvrt nasa-hgt-v1-1s.vrt tiles/*.zip{,.hgt}

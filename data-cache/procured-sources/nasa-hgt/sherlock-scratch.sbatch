@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#SBATCH --time=18:00:00
+#SBATCH --time=10:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
 #SBATCH --mem-per-cpu=4G
@@ -14,7 +14,7 @@ function print_now {
     echo "The time right now is $(date)"
 }
 
-module load physics gdal/3.5.2
+module load physics gdal/3.4.1
 module load python/3.9.0
 module load py-gdal-utils
 
