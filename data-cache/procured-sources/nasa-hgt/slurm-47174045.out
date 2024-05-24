@@ -1,0 +1,64 @@
++ module load physics gdal/3.5.2
++ '[' -z '' ']'
++ case "$-" in
++ __lmod_sh_dbg=x
++ '[' -n x ']'
++ set +x
+Shell debugging temporarily silenced: export LMOD_SH_DBG_ON=1 for Lmod's output
+Shell debugging restarted
++ unset __lmod_sh_dbg
++ return 0
++ module load python/3.9.0
++ '[' -z '' ']'
++ case "$-" in
++ __lmod_sh_dbg=x
++ '[' -n x ']'
++ set +x
+Shell debugging temporarily silenced: export LMOD_SH_DBG_ON=1 for Lmod's output
+Shell debugging restarted
++ unset __lmod_sh_dbg
++ return 0
++ module load py-gdal-utils
++ '[' -z '' ']'
++ case "$-" in
++ __lmod_sh_dbg=x
++ '[' -n x ']'
++ set +x
+Shell debugging temporarily silenced: export LMOD_SH_DBG_ON=1 for Lmod's output
+
+The following have been reloaded with a version change:
+  1) gdal/3.5.2 => gdal/3.4.1     2) proj/9.1.0 => proj/8.2.1
+
+Shell debugging restarted
++ unset __lmod_sh_dbg
++ return 0
++ TARGET_OAK_DIR=/oak/stanford/groups/gdaily/global-dataset-cache/nasa-hgt-v1-1s
++ mkdir -p /oak/stanford/groups/gdaily/global-dataset-cache/nasa-hgt-v1-1s
++ SCRATCH_DIR=/scratch/users/epavia/nasa-hgt-v1-1s
++ SCRATCH_TILES_DIR=/scratch/users/epavia/nasa-hgt-v1-1s/tiles
++ mkdir /scratch/users/epavia/nasa-hgt-v1-1s
++ mkdir -p /scratch/users/epavia/nasa-hgt-v1-1s/tiles
+++ pwd
++ scratch_make='make N_WORKERS=8 -C /scratch/users/epavia/nasa-hgt-v1-1s -f /home/users/epavia/gef-rapid-es-assessments/data-cache/procured-sources/nasa-hgt/Makefile'
++ make N_WORKERS=8 -C /scratch/users/epavia/nasa-hgt-v1-1s -f /home/users/epavia/gef-rapid-es-assessments/data-cache/procured-sources/nasa-hgt/Makefile download-batch
+make: Entering directory `/scratch/users/epavia/nasa-hgt-v1-1s'
+cat /home/users/epavia/gef-rapid-es-assessments/data-cache/procured-sources/nasa-hgt//nasahgt_urls.txt | parallel -j8 "wget \
+	--no-verbose --no-clobber --tries=20 --random-wait --retry-connrefused \
+	--user=\"epavia@stanford.edu\" --password=\"Howexciting23!!\" \
+	--directory-prefix=tiles {}"
+cat: /home/users/epavia/gef-rapid-es-assessments/data-cache/procured-sources/nasa-hgt//nasahgt_urls.txt: No such file or directory
+make: Leaving directory `/scratch/users/epavia/nasa-hgt-v1-1s'
++ print_now
+++ date
++ echo 'The time right now is Thu May 23 15:28:16 PDT 2024'
+The time right now is Thu May 23 15:28:16 PDT 2024
++ make N_WORKERS=8 -C /scratch/users/epavia/nasa-hgt-v1-1s -f /home/users/epavia/gef-rapid-es-assessments/data-cache/procured-sources/nasa-hgt/Makefile nasa-hgt-v1-1s.tif
+make: Entering directory `/scratch/users/epavia/nasa-hgt-v1-1s'
+gdalbuildvrt nasa-hgt-v1-1s.vrt tiles/*.zip{,.hgt}
+0...10...20...30...40...50ERROR 4: tiles/*.zip: No such file or directory
+Warning 1: Can't open tiles/*.zip. Skipping it
+ERROR 4: tiles/*.zip.hgt: No such file or directory
+Warning 1: Can't open tiles/*.zip.hgt. Skipping it
+...60...70...80...90...100 - done.
+make: *** [nasa-hgt-v1-1s.vrt] Error 1
+make: Leaving directory `/scratch/users/epavia/nasa-hgt-v1-1s'

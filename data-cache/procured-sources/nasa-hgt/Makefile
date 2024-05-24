@@ -16,8 +16,8 @@ ROOT_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 TILESDIR := tiles
 
 
-$(ASTER_URLS_FILE):
-	curl $(ASTER_URLS_SOURCE) > $(ASTER_URLS_FILE)
+$(NASAHGT_URLS_FILE):
+	wget $(NASAHGT_URLS_SOURCE) -q -O - | grep -Po '(?<=href=")[^"]*.zip' > $(NASAHGT_URLS_FILE)
 
 $(TILESDIR):
 	mkdir $@
@@ -25,28 +25,25 @@ $(TILESDIR):
 # Sometimes it's useful to use a single HTTP session for this
 .PHONY: download-batch
 download-batch: $(TILESDIR)
-	cat $(ROOT_DIR)/$(ASTER_URLS_FILE) | parallel -j$(N_WORKERS) "wget \
+	cat $(ROOT_DIR)/$(NASAHGT_URLS_FILE) | parallel -j$(N_WORKERS) "wget \
 		--no-verbose --no-clobber --tries=20 --random-wait --retry-connrefused \
 		--user=\"$(NASA_EARTHDATA_USERNAME)\" --password=\"$(NASA_EARTHDATA_PASSWORD)\" \
 		--directory-prefix=$(TILESDIR) {}"
 
-$(NASAHGT_PATHS):
-	python3 $(ROOT_DIR)/aster_tif_paths.py $(TILESDIR) > $(NASAHGT_PATHS)
+nasa-hgt-v1-1s.vrt:
+	gdalbuildvrt $@ $(TILESDIR)/*.zip{,.hgt}
 
-aster.vrt:
-	gdalbuildvrt $@ -input_file_list $(ROOT_DIR)/$(ASTER_PATHS)
-
-aster-v3-1s.tif: aster.vrt
+nasa-hgt-v1-1s.tif: nasa-hgt-v1-1s.vrt
 	$(SETCACHE) gdal_translate -ot "Int16" $(GTIFF_CREATE_OPTS) $< $@
 
-aster-v3-1s.tif.ovr: aster-v3-1s.tif
+nasa-hgt-v1-1s.tif.ovr: nasa-hgt-v1-1s.tif
 	$(SETCACHE) GDAL_NUM_THREADS=$(N_WORKERS) gdaladdo \
 				  --config COMPRESS_OVERVIEW LZW \
 				  --config PREDICTOR_OVERVIEW 2 \
 				  -r near -ro aster-v3-1s.tif
 
-aster-v3-1s-colorized.tif: aster-v3-1s.tif
-	$(SETCACHE) gdaldem color-relief -alpha $(GTIFF_CREATE_OPTS) aster-v3-1s.tif $(ROOT_DIR)/colorprofile.txt $@
+nasa-hgt-v1-1s-colorized.tif: nasa-hgt-v1-1s.tif
+	$(SETCACHE) gdaldem color-relief -alpha $(GTIFF_CREATE_OPTS) nasahgt.tif $(ROOT_DIR)/colorprofile.txt $@
 
-xyztiles: aster-v3-1s-colorized.tif
-	$(SETCACHE) gdal2tiles.py --xyz -r near --zoom=1-8 --processes=$(N_WORKERS) aster-v3-1s-colorized.tif $@
+xyztiles: nasa-hgt-v1-1s-colorized.tif
+	$(SETCACHE) gdal2tiles.py --xyz -r near --zoom=1-8 --processes=$(N_WORKERS) nasa-hgt-v1-1s-colorized.tif $@
