@@ -1,0 +1,37 @@
++ module load physics gdal
++ '[' -z '' ']'
++ case "$-" in
++ __lmod_sh_dbg=x
++ '[' -n x ']'
++ set +x
+Shell debugging temporarily silenced: export LMOD_SH_DBG_ON=1 for Lmod's output
+Shell debugging restarted
++ unset __lmod_sh_dbg
++ return 0
++ module load python/3.9.0
++ '[' -z '' ']'
++ case "$-" in
++ __lmod_sh_dbg=x
++ '[' -n x ']'
++ set +x
+Shell debugging temporarily silenced: export LMOD_SH_DBG_ON=1 for Lmod's output
+Shell debugging restarted
++ unset __lmod_sh_dbg
++ return 0
++ module load py-gdal-utils
++ '[' -z '' ']'
++ case "$-" in
++ __lmod_sh_dbg=x
++ '[' -n x ']'
++ set +x
+Shell debugging temporarily silenced: export LMOD_SH_DBG_ON=1 for Lmod's output
+Shell debugging restarted
++ unset __lmod_sh_dbg
++ return 0
++ mkdir -p /scratch/users/epavia/gmted2010
++ '[' '!' -f /scratch/users/epavia/gmted2010/gmted2010-urls.txt ']'
++ make -j1 -f /home/users/epavia/gef-rapid-es-assessments/data-cache/procured-sources/usgs-gmted2010/Makefile -C /scratch/users/epavia/gmted2010 allxyztiles
+make: Entering directory `/scratch/users/epavia/gmted2010'
+make: /home/users/epavia/gef-rapid-es-assessments/data-cache/procured-sources/usgs-gmted2010/Makefile: No such file or directory
+make: *** No rule to make target `/home/users/epavia/gef-rapid-es-assessments/data-cache/procured-sources/usgs-gmted2010/Makefile'.  Stop.
+make: Leaving directory `/scratch/users/epavia/gmted2010'

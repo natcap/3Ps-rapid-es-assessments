@@ -23,4 +23,4 @@ fi
 
 # Quotes around $@ work as you'd hope - each parameter is quoted individually.  See https://stackoverflow.com/a/4824637/299084
 # NOTE: if we want to run with "all", then specify `sbatch sherlock.sbatch all`
-make -j1 "$SLURM_CPUS_PER_TASK" -f "$SLURM_SUBMIT_DIR/Makefile" -C "$SCRATCH/gmted2010" "$@"
+make -j 1 -f "$SLURM_SUBMIT_DIR/Makefile" -C "$SCRATCH/gmted2010" "$@"
