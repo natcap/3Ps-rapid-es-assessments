@@ -1,0 +1,51 @@
++ module load physics gdal
++ '[' -z '' ']'
++ case "$-" in
++ __lmod_sh_dbg=x
++ '[' -n x ']'
++ set +x
+Shell debugging temporarily silenced: export LMOD_SH_DBG_ON=1 for Lmod's output
+Shell debugging restarted
++ unset __lmod_sh_dbg
++ return 0
++ module load python/3.9.0
++ '[' -z '' ']'
++ case "$-" in
++ __lmod_sh_dbg=x
++ '[' -n x ']'
++ set +x
+Shell debugging temporarily silenced: export LMOD_SH_DBG_ON=1 for Lmod's output
+Shell debugging restarted
++ unset __lmod_sh_dbg
++ return 0
++ module load py-gdal-utils
++ '[' -z '' ']'
++ case "$-" in
++ __lmod_sh_dbg=x
++ '[' -n x ']'
++ set +x
+Shell debugging temporarily silenced: export LMOD_SH_DBG_ON=1 for Lmod's output
+Shell debugging restarted
++ unset __lmod_sh_dbg
++ return 0
++ mkdir -p /scratch/users/epavia/gmted2010
++ '[' '!' -f /scratch/users/epavia/gmted2010/gmted2010-urls.txt ']'
++ make -j 8 -f /home/users/epavia/gef-rapid-es-assessments/data-cache/procured-sources/usgs-gmted2010/Makefile -C /scratch/users/epavia/gmted2010 allxyztiles
+make: Entering directory `/scratch/users/epavia/gmted2010'
+GDAL_CACHEMAX=2048 gdal2tiles.py --xyz -r near --zoom=1-8 --processes=1 gmted2010-min150-colorized-warp.tif gmted2010-min150.xyztiles
+GDAL_CACHEMAX=2048 gdal2tiles.py --xyz -r near --zoom=1-8 --processes=1 gmted2010-dsc075-colorized-warp.tif gmted2010-dsc075.xyztiles
+GDAL_CACHEMAX=2048 gdal2tiles.py --xyz -r near --zoom=1-8 --processes=1 gmted2010-dsc150-colorized-warp.tif gmted2010-dsc150.xyztiles
+GDAL_CACHEMAX=2048 gdal2tiles.py --xyz -r near --zoom=1-8 --processes=1 gmted2010-dsc300-colorized-warp.tif gmted2010-dsc300.xyztiles
+GDAL_CACHEMAX=2048 gdal2tiles.py --xyz -r near --zoom=1-8 --processes=1 gmted2010-bln075-colorized-warp.tif gmted2010-bln075.xyztiles
+GDAL_CACHEMAX=2048 gdal2tiles.py --xyz -r near --zoom=1-8 --processes=1 gmted2010-bln150-colorized-warp.tif gmted2010-bln150.xyztiles
+GDAL_CACHEMAX=2048 gdal2tiles.py --xyz -r near --zoom=1-8 --processes=1 gmted2010-bln300-colorized-warp.tif gmted2010-bln300.xyztiles
+GDAL_CACHEMAX=2048 gdal2tiles.py --xyz -r near --zoom=1-8 --processes=1 gmted2010-max075-colorized-warp.tif gmted2010-max075.xyztiles
+Generating Base Tiles:
+0Generating Base Tiles:
+0Generating Base Tiles:
+0Generating Base Tiles:
+0Generating Base Tiles:
+0Generating Base Tiles:
+0Generating Base Tiles:
+0Generating Base Tiles:
+0...............1010.......101010........2020...............3030202020..101010..........4040..........303030.....5050.................6060...40402020..2040...

@@ -16,7 +16,7 @@ TILESDIR := tiles
 
 
 $(NASAHGT_URLS_FILE):
-	wget $(NASAHGT_URLS_SOURCE) -q -O - | grep -Po '(?<=href=")[^"]*.zip' > $(NASAHGT_URLS_FILE)
+	wget $(NASAHGT_URLS_SOURCE) -q -O - | grep -Po '(?<=href=")[^"]*.zip' > $(ROOT_DIR)/$(NASAHGT_URLS_FILE)
 
 $(TILESDIR):
 	mkdir $@
@@ -30,7 +30,7 @@ download-batch: $(TILESDIR)
 		--directory-prefix=$(TILESDIR) {}"
 
 nasa-hgt-v1-1s.vrt:
-	gdalbuildvrt $@ $(TILESDIR)/*.zip{,.hgt}
+	gdalbuildvrt $@ /vsizip/$(TILESDIR)/*.zip{,.hgt}
 
 nasa-hgt-v1-1s.tif: nasa-hgt-v1-1s.vrt
 	$(SETCACHE) gdal_translate -ot "Int16" $(GTIFF_CREATE_OPTS) $< $@
