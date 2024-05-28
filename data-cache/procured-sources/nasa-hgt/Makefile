@@ -1,5 +1,6 @@
 SHELL := bash
 NASAHGT_URLS_FILE := nasahgt_urls.txt
+NASAHGT_PATHS := nasa_hgt_paths.txt
 NASAHGT_URLS_SOURCE := https://e4ftl01.cr.usgs.gov/MEASURES/NASADEM_HGT.001/2000.02.11/
 N_WORKERS := 8
 GTIFF_CREATE_OPTS := -co "COMPRESS=LZW" \
@@ -29,8 +30,11 @@ download-batch: $(TILESDIR)
 		--user=\"$(NASA_EARTHDATA_USERNAME)\" --password=\"$(NASA_EARTHDATA_PASSWORD)\" \
 		--directory-prefix=$(TILESDIR) {}"
 
+$(NASAHGT_PATHS):
+	python3 $(ROOT_DIR)/nasa-hgt-paths.py $(TILESDIR) > $(NASAHGT_PATHS)
+
 nasa-hgt-v1-1s.vrt:
-	gdalbuildvrt $@ /vsizip/$(TILESDIR)/*.zip{,.hgt}
+	gdalbuildvrt $@ -input_file_list $(ROOT_DIR)/$(NASAHGT_PATHS)
 
 nasa-hgt-v1-1s.tif: nasa-hgt-v1-1s.vrt
 	$(SETCACHE) gdal_translate -ot "Int16" $(GTIFF_CREATE_OPTS) $< $@
