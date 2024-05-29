@@ -8,10 +8,10 @@ GDRIVE_DEFAULT_LOC="/Users/jdouglass/Library/CloudStorage/GoogleDrive-jadoug06@s
 GDRIVE_LOC=${1:-$GDRIVE_DEFAULT_LOC}
 FILE_PATTERN="GFDL-ESM4_hist_plus*.tif"
 
-# This assumes that all files already exist on gdrive.
 find "$GDRIVE_LOC" -name "$FILE_PATTERN" > files-on-gdrive.txt
 
 for file in $(find . -name "$FILE_PATTERN")
 do
-    cp -v "$(pwd)/$file" "$(grep $file files-on-gdrive.txt)"
+    # If the file already exists on GDrive, copy it there. Otherwise, copy it to the GDrive root.
+    cp -v "$(pwd)/$file" "$(grep $file files-on-gdrive.txt || echo $GRIVE_LOC/$file)"
 done
