@@ -57,8 +57,82 @@ def read_first_last_days(netcdf_filepath):
         ds = None
 
 
+
+def write_raster(source_netcdf, target_filepath, array):
+    ds = gdal.Open(f'NETCDF:"{source_netcdf}"', gdal.GA_ReadOnly)
+    driver = gdal.GetDriverByName('GTiff')
+    target_ds = driver.Create(
+        target_filepath, array[1], array[0], 1, gdal.GDT_Float32)
+    source_projection = ds.GetProjection()
+    if not source_projection:
+        source_projection = SRS_WKT
+    target_ds.SetProjection(source_projection)
+    target_ds.SetGeoTransform(ds.GetGeoTransform())
+    target_band = target_ds.GetRasterBand(1)
+    target_band.WriteArray(array)
+
+
+def _get_filepath(netcdf_filepath, years, month):
+    basename = os.path.basename(os.path.splitext(netcdf_filepath)[0])
+    years_label = f'{min(years)}-{max(years)}'
+    filename = f'{basename}-{years_label}-{month:02d}.tif'
+    return filename
+
+
+def potential_evapotranspiration(netcdf_filepath, years):
+    """Write out mean monthly potential evapotranspiration.
+
+    Args:
+        netcdf_filepath (str): The path to the NetCDF file to process.
+            Pixel values represent evapotranspiration per day.
+        years (list): A list of integer years to process.
+    """
+    n_years = len(years)
+    for monthly_array, month_index, days_in_month in (
+            _get_sum_of_monthly_pixel_values_from_netcdf(
+                netcdf_filepath, years)):
+        # PET values should be the mean daily value for the month, averaged
+        # across all of the years.
+        monthly_array /= (n_years * days_in_month)
+
+        target_filename = _get_filepath(netcdf_filepath, years, month_index)
+        write_raster(netcdf_filepath, target_filename, monthly_array)
+
+
+def _get_sum_of_monthly_pixel_values_from_netcdf(netcdf_filepath, years):
+    ds = gdal.Open(f'NETCDF:"{netcdf_filepath}"', gdal.GA_ReadOnly)
+
+    first_day, final_day = read_first_last_days(netcdf_filepath)
+    LOGGER.info(f'First day: {first_day}')
+    LOGGER.info(f'Layers available until {final_day}')
+
+    # generator: yield monthly pixel values sum, days in the month
+    for month in range(1, 13):
+        for year in years:
+            sum_of_daily_pixel_values = numpy.zeros(
+                (ds.RasterYSize, ds.RasterXSize), dtype=numpy.float32)
+            for day in range(1, calendar.monthrange(year, month)[1]+1):
+                date = datetime.date(year=year, month=month, day=day)
+
+                # GDAL bands start at 1
+                band_index = (date - first_day).days + 1
+
+                band = ds.GetRasterBand(band_index)
+                nodata = band.GetNoDataValue()
+                band_array = ds.GetRasterBand(band_index).ReadAsArray()
+                array_mask = ~numpy.isclose(band_array, nodata)
+                sum_of_daily_pixel_values[array_mask] += band_array[array_mask]
+
+            yield (sum_of_daily_pixel_values,
+                   month, calendar.monthrange(year, month)[1])
+
+
+
+
+
 def main(filepath, years, month_method, year_method,
-         write_rain_events_table=False):
+         write_rain_events_table=False,
+         write_rain_events_rasters=False):
     basename = os.path.basename(os.path.splitext(filepath)[0])
     ds = gdal.Open(f'NETCDF:"{filepath}"', gdal.GA_ReadOnly)
 
@@ -77,19 +151,27 @@ def main(filepath, years, month_method, year_method,
     monthly_rain_events = collections.defaultdict(collections.Counter)
     years_label = f'{min(years)}-{max(years)}'
     for month in range(1, 13):
-        sum_of_this_month = numpy.zeros((ds.RasterYSize, ds.RasterXSize), dtype=numpy.float32)
+        sum_of_pixel_values_this_month = numpy.zeros(
+            (ds.RasterYSize, ds.RasterXSize), dtype=numpy.float32)
+        sum_of_daily_rain_events_this_month = numpy.zeros(
+            (ds.RasterYSize, ds.RasterXSize), dtype=numpy.float32)
 
         for year in years:
-            daily_sum_array = numpy.zeros(
+            sum_of_daily_pixel_values = numpy.zeros(
+                (ds.RasterYSize, ds.RasterXSize), dtype=numpy.float32)
+            daily_rain_events_sum = numpy.zeros(
                 (ds.RasterYSize, ds.RasterXSize), dtype=numpy.float32)
             for day in range(1, calendar.monthrange(year, month)[1]+1):
                 date = datetime.date(year=year, month=month, day=day)
-                band_index = (date - first_day).days + 1  # GDAL starts bands at 1
+
+                # GDAL bands start at 1
+                band_index = (date - first_day).days + 1
+
                 band = ds.GetRasterBand(band_index)
                 nodata = band.GetNoDataValue()
                 band_array = ds.GetRasterBand(band_index).ReadAsArray()
                 array_mask = ~numpy.isclose(band_array, nodata)
-                daily_sum_array[array_mask] += band_array[array_mask]
+                sum_of_daily_pixel_values[array_mask] += band_array[array_mask]
 
                 # SWY requires that rain events only count if daily
                 # precipitation exceeds 0.1mm.
@@ -97,14 +179,22 @@ def main(filepath, years, month_method, year_method,
                     if band_array[(band_array > 0.1) & array_mask].size > 0:
                         monthly_rain_events[month][year] += 1
 
-            if month_method == 'mean':
-                daily_sum_array /= calendar.monthrange(year, month)[1]
+                if write_rain_events_rasters:
+                    daily_rain_events_sum[(band_array > 0.1) & array_mask] += 1
 
-            sum_of_this_month += daily_sum_array
+            if month_method == 'mean':
+                sum_of_daily_pixel_values /= calendar.monthrange(
+                    year, month)[1]
+
+                if write_rain_events_rasters:
+                    daily_rain_events_sum /= calendar.monthrange(
+                        year, month)[1]
+
+            sum_of_pixel_values_this_month += sum_of_daily_pixel_values
         if year_method == 'mean':
-            result = sum_of_this_month / len(years)
+            result = sum_of_pixel_values_this_month / len(years)
         else:
-            result = sum_of_this_month
+            result = sum_of_pixel_values_this_month
 
         # Write out the calculated array to a new GeoTiff.
         driver = gdal.GetDriverByName('GTiff')
@@ -144,6 +234,11 @@ if __name__ == '__main__':
         write_rain_events_table = bool(sys.argv[4])
     except IndexError:
         write_rain_events_table = False
+
+    try:
+        write_rain_events_rasters = bool(sys.argv[5])
+    except IndexError:
+        write_rain_events_rasters = False
 
     for method in [month_method, year_method]:
         if method not in {'sum', 'mean'}:
