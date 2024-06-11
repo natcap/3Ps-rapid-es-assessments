@@ -36,10 +36,11 @@ from osgeo import osr
 
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger(__name__)
+gdal.UseExceptions()
 
 
 # GDAL by default limits the band count to 32768, but the NetCDF files we're
-# using have WAY more bands than that in these NetCDF files.
+# using have WAY more bands than that.
 gdal.SetConfigOption('GDAL_MAX_BAND_COUNT', "100000")
 
 # NetCDFs generally don't provide a spatial reference, so we'll assume WGS84.
@@ -50,6 +51,13 @@ del SRS
 
 
 def read_first_last_days(ds):
+    """Read the dates of the first and last dates in the dataset.
+
+    Args:
+        ds (gdal.Dataset): The dataset to read from.
+
+    Returns:
+        tuple (datetime.DateTime): The first and last dates in the dataset."""
     try:
         # The datestamps I'm getting are formatted 1850-1-1, which is not ISO-8601
         malformed_date = ds.GetMetadataItem('time#units').split(' ')[2]
@@ -64,6 +72,17 @@ def read_first_last_days(ds):
 
 
 def write_raster(ds, target_filepath, array):
+    """Write out a raster to disk.
+
+    Args:
+        ds (gdal.Dataset): A dataset to copy the geotransform and projection
+            from.
+        target_filepath (str): The path to write the raster to.
+        array (numpy.ndarray): The array to write to disk.
+
+    Returns:
+        None
+    """
     driver = gdal.GetDriverByName('GTiff')
     target_ds = driver.Create(
         target_filepath, array.shape[1], array.shape[0], 1, gdal.GDT_Float32)
@@ -78,6 +97,19 @@ def write_raster(ds, target_filepath, array):
 
 
 def _get_filepath(netcdf_filepath, years, month, suffix=None, workspace=None):
+    """Generate a filename for the output raster.
+
+    Args:
+        netcdf_filepath (str): The path to the NetCDF file being processed.
+        years (list): A list of years being processed.
+        month (int): The month being processed.
+        suffix (str): An optional suffix to add to the filename.
+        workspace (str): An optional workspace to write the file to.
+            If not provided, the current working directory is implied.
+
+    Returns:
+        str: The filename to write the output raster to.
+    """
     basename = os.path.basename(os.path.splitext(netcdf_filepath)[0])
     years_label = f'{min(years)}-{max(years)}'
     if suffix:
@@ -98,6 +130,10 @@ def potential_evapotranspiration(netcdf_filepath, years, workspace):
         netcdf_filepath (str): The path to the NetCDF file to process.
             Pixel values represent evapotranspiration per day.
         years (list): A list of integer years to process.
+        workspace (str): The directory to write the output rasters to.
+
+    Returns:
+        None
     """
     ds = gdal.Open(f'NETCDF:"{netcdf_filepath}"', gdal.GA_ReadOnly)
     first_day, last_day = read_first_last_days(ds)
@@ -115,6 +151,16 @@ def potential_evapotranspiration(netcdf_filepath, years, workspace):
 
 
 def temperature(netcdf_filepath, years, workspace):
+    """Write out mean monthly temperature.
+
+    Args:
+        netcdf_filepath (str): The path to the NetCDF file to process.
+        years (list): A list of integer years to process.
+        workspace (str): The directory to write the output rasters to.
+
+    Returns:
+        None
+    """
     # The actual calculations for temp are the same as for PET, so just use
     # that.  The netcdf file is named differently, so the outputs should be
     # distinct files.
@@ -122,6 +168,16 @@ def temperature(netcdf_filepath, years, workspace):
 
 
 def precipitation(netcdf_filepath, years, workspace):
+    """Write out mean monthly precipitation and rain events.
+
+    Args:
+        netcdf_filepath (str): The path to the NetCDF file to process.
+        years (list): A list of integer years to process.
+        workspace (str): The directory to write the output rasters to.
+
+    Returns:
+        None
+    """
     ds = gdal.Open(f'NETCDF:"{netcdf_filepath}"', gdal.GA_ReadOnly)
     first_day, last_day = read_first_last_days(ds)
 
@@ -182,6 +238,18 @@ def precipitation(netcdf_filepath, years, workspace):
 
 
 def _get_daily_pixel_values_from_netcdf(ds, first_day, year, month):
+    """Generate daily pixel values from a NetCDF file.
+
+    Args:
+        ds (gdal.Dataset): The dataset to read from.
+        first_day (datetime.date): The first day of the dataset.
+        year (int): The year to read from.
+        month (int): The month to read from.
+
+    Yields:
+        tuple: A tuple containing the daily pixel values and a mask of valid
+            pixels.
+    """
     for day in range(1, calendar.monthrange(year, month)[1]+1):
         date = datetime.date(year=year, month=month, day=day)
 
@@ -197,6 +265,16 @@ def _get_daily_pixel_values_from_netcdf(ds, first_day, year, month):
 
 
 def _get_sum_of_monthly_pixel_values_from_netcdf(ds, years):
+    """Generate the sum of monthly pixel values from a NetCDF file.
+
+    Args:
+        ds (gdal.Dataset): The dataset to read from.
+        years (list): A list of integer years to process.
+
+    Yields:
+        tuple: A tuple containing the sum of monthly pixel values, the month
+            index, and the number of days in the month.
+    """
     first_day, final_day = read_first_last_days(ds)
     LOGGER.info(f'First day: {first_day}')
     LOGGER.info(f'Layers available until {final_day}')
@@ -216,8 +294,6 @@ def _get_sum_of_monthly_pixel_values_from_netcdf(ds, years):
 
 
 if __name__ == '__main__':
-    print(sys.argv)
-
     year_min, year_max = [int(year) for year in sys.argv[2].split(':')]
     years = list(range(year_min, year_max+1))
 
