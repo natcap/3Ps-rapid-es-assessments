@@ -19,13 +19,13 @@ do
     for yearrange in ${YEARRANGES[@]}
     do
         python convert-daily-esm-netcdf-to-monthly-gtiff.py \
-            "$DIR/GFDL-ESM4_hist_plus_${suffix}_pet.nc" "$yearrange" "pet" "refactored-outputs"
+            "$DIR/GFDL-ESM4_hist_plus_${suffix}_pet.nc" "$yearrange" "pet"
 
         python convert-daily-esm-netcdf-to-monthly-gtiff.py \
-            "$DIR/GFDL-ESM4_hist_plus_${suffix}_pr.nc" "$yearrange" "precip" "refactored-outputs"
+            "$DIR/GFDL-ESM4_hist_plus_${suffix}_pr.nc" "$yearrange" "precip"
 
         python convert-daily-esm-netcdf-to-monthly-gtiff.py \
-            "$DIR/GFDL-ESM4_hist_plus_${suffix}_tas.nc" "$yearrange" "tas" "refactored-outputs"
+            "$DIR/GFDL-ESM4_hist_plus_${suffix}_tas.nc" "$yearrange" "tas"
     done
 done
 
