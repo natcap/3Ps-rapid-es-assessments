@@ -6,6 +6,10 @@ set -e
 
 # The directory containing the netCDF files is $1
 DIR="$1"
+if [ -z "$DIR" ]; then
+    echo "Please provide the directory containing the netCDF files as the first argument."
+    exit 1
+fi
 
 SUFFIXES=("ssp126" "ssp585")
 YEARRANGES=("1961:1990" "2040:2040" "2041:2070" "2071:2100")
@@ -15,13 +19,13 @@ do
     for yearrange in ${YEARRANGES[@]}
     do
         python convert-daily-esm-netcdf-to-monthly-gtiff.py \
-            "$DIR/GFDL-ESM4_hist_plus_${suffix}_pet.nc" "$yearrange" "mean:mean"
+            "$DIR/GFDL-ESM4_hist_plus_${suffix}_pet.nc" "$yearrange" "pet" "refactored-outputs"
 
         python convert-daily-esm-netcdf-to-monthly-gtiff.py \
-            "$DIR/GFDL-ESM4_hist_plus_${suffix}_pr.nc" "$yearrange" "sum:mean" "True" "True"
+            "$DIR/GFDL-ESM4_hist_plus_${suffix}_pr.nc" "$yearrange" "precip" "refactored-outputs"
 
         python convert-daily-esm-netcdf-to-monthly-gtiff.py \
-            "$DIR/GFDL-ESM4_hist_plus_${suffix}_tas.nc" "$yearrange" "mean:mean"
+            "$DIR/GFDL-ESM4_hist_plus_${suffix}_tas.nc" "$yearrange" "tas" "refactored-outputs"
     done
 done
 
