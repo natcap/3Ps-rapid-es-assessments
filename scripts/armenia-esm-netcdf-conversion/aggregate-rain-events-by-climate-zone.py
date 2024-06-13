@@ -62,7 +62,7 @@ def main(target_csv, climate_zones_raster, monthly_rain_events_rasters,
         aligned_climate_zones_raster)
     cz_nodata = pygeoprocessing.get_raster_info(
         aligned_climate_zones_raster)['nodata'][0]
-    for month_name, aligned_path in zip(MONTH_NAMES, aligned_raster_paths):
+    for month_name, aligned_path in zip(MONTH_NAMES, aligned_rain_events):
         for cz_id in numpy.unique(cz_array):
             cz_mask = (
                 (cz_array == cz_id) &
