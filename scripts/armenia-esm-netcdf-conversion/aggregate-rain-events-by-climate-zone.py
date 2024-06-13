@@ -71,7 +71,7 @@ def main(target_csv, climate_zones_raster, monthly_rain_events_rasters,
                 aligned_path)
             if rain_events_array[cz_mask].size > 0:
                 monthly_rain_events_by_climate_zone[month_name][cz_id] = (
-                    rain_events_array[cz_mask].max())
+                    rain_events_array[cz_mask].mean())
 
     with open(target_csv, 'w') as target_file:
         target_file.write(f'cz_id,{",".join(MONTH_NAMES)}\n')
