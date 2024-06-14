@@ -1,1 +1,2 @@
-data-cache/procured-sources/nasa-hgt/nasahgt_urls.txt
+data-cache/procured-sources/nasa-hgt/nasa_hgt_paths.txt
+data-cache/procured-sources/**/slurm-*.out

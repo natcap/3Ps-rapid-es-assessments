@@ -57,4 +57,7 @@ The time right now is Fri Jun 14 09:52:06 PDT 2024
 + make N_WORKERS=8 -C /scratch/users/epavia/nasa-hgt-v1-1s -f /home/users/epavia/gef-rapid-es-assessments/data-cache/procured-sources/nasa-hgt/Makefile nasa-hgt-v1-1s.tif
 make: Entering directory `/scratch/users/epavia/nasa-hgt-v1-1s'
 gdalbuildvrt nasa-hgt-v1-1s.vrt -input_file_list /home/users/epavia/gef-rapid-es-assessments/data-cache/procured-sources/nasa-hgt//nasa_hgt_paths.txt
-0.
+0...10...20...30...40...50...60...70...80...90...100 - done.
+GDAL_CACHEMAX=2048 gdal_translate -ot "Int16" -co "COMPRESS=LZW" -co "PREDICTOR=2" -co "TILED=YES" -co "SPARSE_OK=False" -co "BIGTIFF=YES" -co "NUM_THREADS=8" nasa-hgt-v1-1s.vrt nasa-hgt-v1-1s.tif
+Input file size is 1288801, 421201
+0
