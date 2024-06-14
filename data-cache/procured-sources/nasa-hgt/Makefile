@@ -17,7 +17,7 @@ TILESDIR := tiles
 
 
 $(NASAHGT_URLS_FILE):
-	wget $(NASAHGT_URLS_SOURCE) -q -O - | grep -Po '(?<=href=")[^"]*.zip' > $(ROOT_DIR)/$(NASAHGT_URLS_FILE)
+	wget $(NASAHGT_URLS_SOURCE) -q -O - | grep -Po '(?<=href=")[^"]*.zip' > $(NASAHGT_URLS_FILE)
 
 $(TILESDIR):
 	mkdir $@
@@ -30,8 +30,8 @@ download-batch: $(TILESDIR)
 		--user=\"$(NASA_EARTHDATA_USERNAME)\" --password=\"$(NASA_EARTHDATA_PASSWORD)\" \
 		--directory-prefix=$(TILESDIR) {}"
 
-$(NASAHGT_PATHS):
-	python3 $(ROOT_DIR)/nasa-hgt-paths.py $(TILESDIR) > $(NASAHGT_PATHS)
+list-paths:
+	python3 $(ROOT_DIR)/nasa-hgt-paths.py $(TILESDIR) > $(ROOT_DIR)/$(NASAHGT_PATHS)
 
 nasa-hgt-v1-1s.vrt:
 	gdalbuildvrt $@ -input_file_list $(ROOT_DIR)/$(NASAHGT_PATHS)

@@ -29,6 +29,8 @@ scratch_make="make N_WORKERS=$SLURM_CPUS_PER_TASK -C $SCRATCH_DIR -f $(pwd)/Make
 
 $scratch_make download-batch
 
+$scratch_make list-paths
+
 print_now
 $scratch_make nasa-hgt-v1-1s.tif
 cp $SCRATCH_DIR/nasa-hgt-v1-1s.tif $TARGET_OAK_DIR &
