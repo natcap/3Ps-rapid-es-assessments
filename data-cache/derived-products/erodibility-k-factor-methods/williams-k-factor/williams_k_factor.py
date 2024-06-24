@@ -183,7 +183,7 @@ if __name__ == "__main__":
     for base_path in base_list:
         base_name = os.path.basename(base_path)
         aligned_name = f'{os.path.splitext(base_name)[0]}_aligned.tif'
-        aligned_list.append(os.path.join(output_dir, aligned_name)
+        aligned_list.append(os.path.join(output_dir, aligned_name))
         
     # Taking 'union' since SOC is just missing a few rows.
     align_task = graph.add_task(
