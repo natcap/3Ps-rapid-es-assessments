@@ -1,13 +1,14 @@
-"""Soil erodibility K Factor from ISRIC soilgrids.
+"""Soil erodibility Renard K Factor from ISRIC soilgrids.
 
 Refactored from Jade Delevaux's R script.
 
 References:
 
-Renard, K., Foster, G., Weesies, G., McCool, D., Yoder, D., 1997.
-Predicting Soil Erosion by Water: A Guide to Conservation Planning With the
-Revised Universal Soil Loss Equation (RUSLE). U.S. Department of Agriculture,
-Agriculture Handbook No. 703.
+    Renard, K., Foster, G., Weesies, G., McCool, D., Yoder, D., 1997.
+    Predicting Soil Erosion by Water: A Guide to Conservation Planning With the
+    Revised Universal Soil Loss Equation (RUSLE).
+    U.S. Department of Agriculture, Agriculture Handbook No. 703.
+    https://www.ars.usda.gov/arsuserfiles/64080530/rusle/ah_703.pdf page 98/407
 """
 import argparse
 import logging
@@ -121,7 +122,7 @@ def calculate_renard_k_factor(dg_path, k_factor_output_path):
 
 
 if __name__ == "__main__":
-    LOGGER.info("Starting script to process K Factor from ISRIC soil grids.")
+    LOGGER.info("Starting Renard K Factor using ISRIC soil grids.")
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--workspace', default='soils-k-factor',
@@ -153,9 +154,7 @@ if __name__ == "__main__":
 
     ##### A/ Soil erodibility ######
     LOGGER.info("Set up workspace directory")
-    output_dir = os.path.join(workspace_dir, 'outputs')
-    if not os.path.isdir(output_dir):
-        os.mkdir(output_dir)
+    output_dir = workspace_dir
 
     LOGGER.info("Calculating DG")
     dg_output_path = os.path.join(output_dir, 'dg-result.tif')
@@ -187,4 +186,4 @@ if __name__ == "__main__":
     graph.close()
     graph.join()
 
-    LOGGER.info(f"Soils K factor complete.")
+    LOGGER.info(f"Soils Renard K factor complete.")

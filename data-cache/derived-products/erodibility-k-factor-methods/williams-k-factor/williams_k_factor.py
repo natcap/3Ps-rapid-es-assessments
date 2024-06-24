@@ -4,10 +4,14 @@ Refactored from Jade Delevaux's R script.
 
 References:
 
-Renard, K., Foster, G., Weesies, G., McCool, D., Yoder, D., 1997.
-Predicting Soil Erosion by Water: A Guide to Conservation Planning With the
-Revised Universal Soil Loss Equation (RUSLE). U.S. Department of Agriculture,
-Agriculture Handbook No. 703.
+    Neitsch S.L., Arnold J.G., Kiniry J.R., Williams J.R.
+    Erosion Soil and Water Assessment Tool Theoretical Documentation.
+    Texas Agricultural Experiment Station. pp. 625, 2000
+
+    Williams J.R. Chapter 25: The EPIC model. In V.P. Singh (ed.)
+    Computer models of watershed hydrology. Water Resources Publications.
+    p. 909-1000, 1995
+
 """
 import argparse
 import logging
@@ -24,7 +28,7 @@ logging.basicConfig(
         '%(asctime)s (%(relativeCreated)d) %(levelname)s %(name)s'
         ' [%(funcName)s:%(lineno)d] %(message)s'),
 )
-LOGGER = logging.getLogger('K-Factor')
+LOGGER = logging.getLogger('K-Factor-Williams')
 NODATA_FLOAT32 = numpy.finfo(numpy.float32).min
 gdal.SetCacheMax(2**32)
 
@@ -126,7 +130,7 @@ def calculate_williams_k_factor(
 
 
 if __name__ == "__main__":
-    LOGGER.info("Starting script to process K Factor from ISRIC soil grids.")
+    LOGGER.info("Starting Williams K Factor using ISRIC soil grids.")
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--workspace', default='soils-k-factor',
@@ -160,9 +164,7 @@ if __name__ == "__main__":
 
     ##### A/ Soil erodibility ######
     LOGGER.info("Set up workspace directory")
-    output_dir = os.path.join(workspace_dir, 'outputs')
-    if not os.path.isdir(output_dir):
-        os.mkdir(output_dir)
+    output_dir = workspace_dir
 
     # Align and resize datasets as it appears SOC is of different dimensions.
     # {(159243, 58034), (159246, 58034)}
@@ -177,7 +179,12 @@ if __name__ == "__main__":
 
     raster_info = pygeoprocessing.get_raster_info(raster_path)
     target_pixel_size = raster_info['pixel_size']
-    aligned_list = [f"{os.path.splitext(x)[0]}_aligned.tif" for x in base_list]
+    aligned_list = []
+    for base_path in base_list:
+        base_name = os.path.basename(base_path)
+        aligned_name = f'{os.path.splitext(base_name)[0]}_aligned.tif'
+        aligned_list.append(os.path.join(output_dir, aligned_name)
+        
     # Taking 'union' since SOC is just missing a few rows.
     align_task = graph.add_task(
         func=pygeoprocessing.align_and_resize_raster_stack,
@@ -210,4 +217,4 @@ if __name__ == "__main__":
     graph.close()
     graph.join()
 
-    LOGGER.info(f"Soils K factor complete.")
+    LOGGER.info(f"Soils Williams K Factor complete.")

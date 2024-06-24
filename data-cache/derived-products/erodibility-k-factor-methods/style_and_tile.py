@@ -26,10 +26,15 @@ GTIFF_CREATE_OPTS = (
 
 
 def style_tile_raster(raster_path, working_dir, color_relief_path):
-    """
-        raster_path
-        working_dir
-        color_relief_path
+    """Calls ``gdaldem color-relief`` and ``gdal2tiles --xyz`` given a raster.
+
+    Args:
+        raster_path (string): path to input raster to style and tile.
+        working_dir (sring): directory path to save outputs.
+        color_relief_path (string): path to a color profile for styling.
+        
+    Returns:
+        Nothing
     """
     # Set up directory and paths for outputs
     base_name = os.path.splitext(os.path.basename(raster_path))[0]
@@ -39,10 +44,11 @@ def style_tile_raster(raster_path, working_dir, color_relief_path):
     if not os.path.isdir(tile_dir):
         os.mkdir(tile_dir)
 
-    gdaldem_cmd = f'gdaldem color-relief {GTIFF_CREATE_OPTS} {raster_path} {color_relief_path} -alpha {rgb_raster_path}'
+    cache_cmd = "export GDAL_CACHEMAX=2048"
+    gdaldem_cmd = f'{cache_cmd}; gdaldem color-relief {GTIFF_CREATE_OPTS} {raster_path} {color_relief_path} -alpha {rgb_raster_path}'
     LOGGER.info(f'Calling {gdaldem_cmd}')
     subprocess.call(gdaldem_cmd, shell=True)
-    tile_cmd = f'gdal2tiles --xyz -r near --zoom=1-8 --process={N_WORKERS} {rgb_raster_path} {tile_dir}'
+    tile_cmd = f'{cache_cmd}; gdal2tiles --xyz -r near --zoom=1-8 --process={N_WORKERS} {rgb_raster_path} {tile_dir}'
     print(tile_cmd)
     LOGGER.info(f'Calling {tile_cmd}')
     subprocess.call(tile_cmd, shell=True)
