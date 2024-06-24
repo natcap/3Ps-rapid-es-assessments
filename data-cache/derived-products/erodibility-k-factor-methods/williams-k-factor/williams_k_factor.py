@@ -209,7 +209,7 @@ if __name__ == "__main__":
             "soc_path": aligned_list[3],
             "target_path": williams_k_factor_path,
         },
-        target_path_list=[dg_output_path],
+        target_path_list=[williams_k_factor_path],
         dependent_task_list=[align_task],
         task_name='Calculate Williams K'
     )
