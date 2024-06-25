@@ -48,7 +48,7 @@ def style_tile_raster(raster_path, working_dir, color_relief_path):
     gdaldem_cmd = f'{cache_cmd}; gdaldem color-relief {GTIFF_CREATE_OPTS} {raster_path} {color_relief_path} -alpha {rgb_raster_path}'
     LOGGER.info(f'Calling {gdaldem_cmd}')
     subprocess.call(gdaldem_cmd, shell=True)
-    tile_cmd = f'{cache_cmd}; gdal2tiles --xyz -r near --zoom=1-8 --process={N_WORKERS} {rgb_raster_path} {tile_dir}'
+    tile_cmd = f'{cache_cmd}; gdal2tiles.py --xyz -r near --zoom=1-8 --process={N_WORKERS} {rgb_raster_path} {tile_dir}'
     print(tile_cmd)
     LOGGER.info(f'Calling {tile_cmd}')
     subprocess.call(tile_cmd, shell=True)
