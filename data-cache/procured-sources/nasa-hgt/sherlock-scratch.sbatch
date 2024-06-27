@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#SBATCH --time=10:00:00
+#SBATCH --time=12:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
 #SBATCH --mem-per-cpu=4G
@@ -18,7 +18,7 @@ module load physics gdal/3.4.1
 module load python/3.9.0
 module load py-gdal-utils
 
-TARGET_OAK_DIR=$OAK/global-dataset-cache/nasa-hgt-v1-1s
+TARGET_OAK_DIR=$OAK/global-dataset-cache/Public/nasa-hgt-v1-1s
 mkdir -p $TARGET_OAK_DIR || echo "Directory already exists: $TARGET_OAK_DIR"
 
 SCRATCH_DIR=$SCRATCH/nasa-hgt-v1-1s

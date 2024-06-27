@@ -43,10 +43,10 @@ nasa-hgt-v1-1s.tif.ovr: nasa-hgt-v1-1s.tif
 	$(SETCACHE) GDAL_NUM_THREADS=$(N_WORKERS) gdaladdo \
 				  --config COMPRESS_OVERVIEW LZW \
 				  --config PREDICTOR_OVERVIEW 2 \
-				  -r near -ro aster-v3-1s.tif
+				  -r near -ro nasa-hgt-v1-1s.tif
 
 nasa-hgt-v1-1s-colorized.tif: nasa-hgt-v1-1s.tif
-	$(SETCACHE) gdaldem color-relief -alpha $(GTIFF_CREATE_OPTS) nasahgt.tif $(ROOT_DIR)/colorprofile.txt $@
+	$(SETCACHE) gdaldem color-relief -alpha $(GTIFF_CREATE_OPTS) nasa-hgt-v1-1s.tif $(ROOT_DIR)/colorprofile.txt $@
 
 xyztiles: nasa-hgt-v1-1s-colorized.tif
 	$(SETCACHE) gdal2tiles.py --xyz -r near --zoom=1-8 --processes=$(N_WORKERS) nasa-hgt-v1-1s-colorized.tif $@
