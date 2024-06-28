@@ -1,16 +1,69 @@
 {
-    "public_layers": {
-        "awc-isric-soilgrids": {
+   "public_layers": {
+	"awc-isric-soil": {
             "title": "Plant Available Water Content",
             "download": "awc.tif",
             "colors": "pawc.gcolors",
-            "xyztiles": "tiles"
+            "xyztiles": "xyztiles",
+            "data": {
+                "min": 0.0,
+                "max": 0.006,
+                "units": "Fraction of soil water available to plants",
+                "attribution": "ISRIC",
+                "pixel_size": [0.002083333000001, -0.002083333000001]
+            }
         },
-        "srtm-v3-1s": {
-            "title": "SRTM",
+        "nasa-srtm-v3-1s": {
+            "title": "SRTM DEM",
             "download": "srtm-v3-1s.tif",
             "colors": "srtm.gcolors",
-            "xyztiles": "tiles"
+            "xyztiles": "xyztiles",
+            "data": {
+                "min": -12269,
+                "max": 22894,
+                "units": "Elevation (m)",
+                "attribution": "NASA",
+                "pixel_size": [0.000277777777778, -0.000277777777778]
+            }
+        },
+        "aster-v3-1s": {
+            "title": "ASTER DEM",
+            "download": "aster-v3-1s.tif",
+            "colors": "aster.gcolors",
+            "xyztiles": "xyztiles",
+            "data": {
+                "min": -28,
+                "max": 13578,
+                "units": "",
+                "attribution": "NASA",
+                "pixel_size": [0.000277777777778, -0.000277777777778]
+            }
+        },
+        "renard-k-factor": {
+            "title": "Erodibility K Factor Renard",
+            "download": "renard-k-factor.tif",
+            "colors": "renard-k-factor-colors.gcolors",
+            "xyztiles": "renard-k-factor-tiles",
+            "data": {
+                "min": 0.003,
+                "max": 0.044,
+                "units": "",
+                "attribution": "ISRIC",
+                "pixel_size": ["unknown", "unknown"]
+            }
+        },
+        "williams-k-factor": {
+            "title": "Erodibility K Factor Williams",
+            "download": "williams-k-factor.tif",
+            "colors": "williams-k-factor-colors.gcolors",
+            "xyztiles": "williams-k-factor-tiles",
+            "data": {
+                "min": 0.000,
+                "max": 0.018,
+                "units": "",
+                "attribution": "ISRIC",
+                "pixel_size": ["unknown", "unknown"]
+            }
         }
     }
 }
