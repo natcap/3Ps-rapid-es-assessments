@@ -69,9 +69,7 @@ def calculate_awc(
         assert awc[valid].max() <= 1, "Calculated AWC must be <= 1"
         return awc
 
-    driver_opts = ('GTIFF', (
-        'TILED=YES', 'BIGTIFF=YES', 'COMPRESS=LZW',
-        'BLOCKXSIZE=256', 'BLOCKYSIZE=256', 'PREDICTOR=1', 'NUM_THREADS=4'))
+    driver_opts = ('COG', ('BIGTIFF=YES', 'NUM_THREADS=4'))
     raster_paths = [(path, 1) for path in rasters]
     pygeoprocessing.geoprocessing.raster_calculator(
         raster_paths, _calculate, target_awc_path,
