@@ -2,7 +2,7 @@ SHELL := bash
 TIF_PATHS := tif_paths.txt
 DIRECTORY := $(OAK)/global-dataset-cache/Public/erodibility-k-factors/
 N_WORKERS := 8
-GTIFF_CREATE_OPTS := -of cog
+GTIFF_CREATE_OPTS := -of cog \
                      -co "BIGTIFF=YES" \
 					 -co "NUM_THREADS=$(N_WORKERS)"
 SETCACHE := GDAL_CACHEMAX=2048
