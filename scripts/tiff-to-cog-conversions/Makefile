@@ -1,4 +1,3 @@
-## MAKEFILE for TIFF to COG
 SHELL := bash
 TIF_PATHS := tif_paths.txt
 DIRECTORY := $(OAK)/global-dataset-cache/Public/erodibility-k-factors/
