@@ -1,7 +1,7 @@
 ## MAKEFILE for TIFF to COG
 SHELL := bash
 TIF_PATHS := tif_paths.txt
-DIRECTORY := $(OAK)
+DIRECTORY := $(OAK)/global-dataset-cache/Public/erodibility-k-factors/
 N_WORKERS := 8
 GTIFF_CREATE_OPTS := -of cog
                      -co "BIGTIFF=YES" \
