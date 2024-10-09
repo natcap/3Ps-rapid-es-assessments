@@ -7,6 +7,8 @@ GTIFF_CREATE_OPTS := -of cog \
 					 -co "NUM_THREADS=$(N_WORKERS)"
 SETCACHE := GDAL_CACHEMAX=2048
 
+ROOT_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
+
 $(TIF_PATHS):
 	python3 $(ROOT_DIR)/list-geotiffs.py $(DIRECTORY) > $(TIF_PATHS)
 

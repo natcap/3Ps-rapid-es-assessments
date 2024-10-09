@@ -4,8 +4,6 @@ import os
 import glob
 import sys
 
-path = "Z:\\global-dataset-cache\\Public"
-
 
 def extract_paths(tif_dir):
 
