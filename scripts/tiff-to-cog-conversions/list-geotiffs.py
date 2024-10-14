@@ -20,7 +20,7 @@ def extract_paths(tif_dir):
 
     tif_dir = os.path.abspath(tif_dir)
     tiffiles = []
-    for tif in glob.glob(os.path.join(tif_dir, "**\\*.tif")):
+    for tif in glob.glob(os.path.join(tif_dir, "**/*.tif")):
         tiffiles.append(tif)
 
     print(*tiffiles, sep='\n')
