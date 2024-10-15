@@ -5,14 +5,17 @@
 #SBATCH --cpus-per-task=2
 #SBATCH --mem-per-cpu=8G
 #SBATCH --mail-type=ALL
-#SBATCH --partition=hns,normal
-#SBATCH --job-name="TIF-TO-COG"
+#SBATCH --partition=hns,normal,serc
+#SBATCH --job-name="footprint-TIF-TO-COG"
 
 module load physics gdal/3.5.2
 module load python/3.9.0
 module load py-gdal-utils
 
-# update this path to reflect folders to search through to locate .tif files
-WORKDIR="/oak/stanford/groups/gdaily/global-dataset-cache/Public/erodibility-k-factors"
+rm tif_paths.txt # make sure we are always making a fresh file
 
-make -C $WORKDIR
+# update this path to reflect folders to search through to locate .tif files
+WORKDIR=$OAK/natcap-data-catalog-cache/footprint-impact-tool-data/
+
+
+make 1=$WORKDIR cog-translate
