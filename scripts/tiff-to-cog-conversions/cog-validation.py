@@ -46,8 +46,10 @@ def compare_scale(cog, tif):
 
     cog_band = cog_file.GetRasterBand(1)
     tif_band = tif_file.GetRasterBand(1)
-    print("COG:" + " " + cog_band.GetNoDataValue())  # NoData value
-    print("TIF:" + " " + tif_band.GetNoDataValue())  # NoData value
+    print("COG")
+    print(cog_band.GetNoDataValue())  # NoData value
+    print("TIF")
+    print(tif_band.GetNoDataValue())  # NoData value
 
     print(cog_band.GetStatistics(0, 1)) 
     print(cog_band.GetStatistics(0, 1)) 
