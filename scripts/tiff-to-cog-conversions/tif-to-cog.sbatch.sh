@@ -12,6 +12,7 @@ module load physics gdal/3.5.2
 module load python/3.9.0
 module load py-gdal-utils
 
+# update this path to reflect folders to search through to locate .tif files
 WORKDIR="/oak/stanford/groups/gdaily/global-dataset-cache/Public/erodibility-k-factors"
 
-make $WORKDIR
+make -C $WORKDIR
