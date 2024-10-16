@@ -18,4 +18,4 @@ rm tif_paths.txt # make sure we are always making a fresh file
 WORKDIR=$OAK/natcap-data-catalog-cache/footprint-impact-tool-data/
 
 
-make 1=$WORKDIR cog-translate
+make WORKDIR=$WORKDIR cog-translate

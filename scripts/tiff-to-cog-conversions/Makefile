@@ -1,6 +1,6 @@
 SHELL := bash
 TIF_PATHS := tif_paths.txt
-DIRECTORY := $(1)
+DIRECTORY := $(WORKDIR)
 N_WORKERS := 8
 GTIFF_CREATE_OPTS := -of cog \
                      -co "BIGTIFF=YES" \

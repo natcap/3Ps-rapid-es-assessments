@@ -5,7 +5,6 @@ from osgeo import gdal
 import sys
 
 
-
 def validate_cog(cog):
 
     """This function will check the validity of the newly formulated
@@ -18,7 +17,7 @@ def validate_cog(cog):
         Prints whether COGs are valid per file to standard out.
     """
 
-    is_valid, valid, errors = cog_validate(cog)
+    is_valid, _, errors = cog_validate(cog)
 
     if is_valid:
         print(cog + " " + "is Valid", sep='\n')
@@ -26,7 +25,6 @@ def validate_cog(cog):
         print(cog + " " + "is Invalid")
         for error in errors:
             print(error, sep='\n')
-    
 
 
 def compare_scale(cog, tif):
@@ -57,4 +55,4 @@ def compare_scale(cog, tif):
 
 if __name__ == '__main__':
     validate_cog(sys.argv[1])
-    compare_scale(sys.argv[1],sys.argv[2])
+    compare_scale(sys.argv[1], sys.argv[2])

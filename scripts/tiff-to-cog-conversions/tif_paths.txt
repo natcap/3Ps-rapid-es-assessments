@@ -1,4 +1,0 @@
-/oak/stanford/groups/gdaily/natcap-data-catalog-cache/footprint-impact-tool-data/nature_access_service/nature_access_for_people.tif
-/oak/stanford/groups/gdaily/natcap-data-catalog-cache/footprint-impact-tool-data/nitrogen_retention_service/nitrogen_retention_for_downstream_populations.tif
-/oak/stanford/groups/gdaily/natcap-data-catalog-cache/footprint-impact-tool-data/coastal_risk_reduction_service/coastal_risk_reduction_for_coastal_populations_thresholded.tif
-/oak/stanford/groups/gdaily/natcap-data-catalog-cache/footprint-impact-tool-data/sediment_retention_service/sediment_retention_for_downstream_populations.tif
