@@ -1,12 +1,12 @@
 #!/bin/bash
 #
-#SBATCH --time=8:00:00
+#SBATCH --time=5:00:00
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=2
-#SBATCH --mem-per-cpu=8G
+#SBATCH --cpus-per-task=4
+#SBATCH --mem-per-cpu=4G
 #SBATCH --mail-type=ALL
 #SBATCH --partition=hns,normal,serc
-#SBATCH --job-name="footprint-TIF-TO-COG"
+#SBATCH --job-name="globalcache-TIF-TO-COG"
 
 module load physics gdal/3.5.2
 module load python/3.9.0
@@ -25,9 +25,13 @@ for t in $(cat tif_paths.txt);
 		j=`echo $t | cut -d . -f 1`; \
         j=$j"_cog.tif"; \
         echo $t; \
-        GDAL_CACHEMAX=2048 gdalinfo -stats $t; \
-        echo "Translating $t"
-		GDAL_CACHEMAX=2048 gdal_translate ${t} ${j} -of cog -strict -co "BIGTIFF=YES" -co "NUM_THREADS=$N_WORKERS"; \
+        if [ -f $j ]; then 
+            echo "$j Already Exists"
+        else
+            GDAL_CACHEMAX=2048 gdalinfo -stats $t; \
+            echo "Translating $t"
+		    GDAL_CACHEMAX=2048 gdal_translate ${t} ${j} -of cog -strict -co "BIGTIFF=YES" -co "NUM_THREADS=$N_WORKERS"; \
+        fi
         echo "Checking validity of $j"
         GDAL_CACHEMAX=2048 python3 $VALIDATION $j >> $WORKDIR/validation_check.txt; \
 		python3 scale-check.py $j $t >> $WORKDIR/scale-check.txt; \
