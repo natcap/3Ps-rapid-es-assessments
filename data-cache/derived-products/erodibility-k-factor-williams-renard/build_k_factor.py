@@ -14,9 +14,9 @@ import logging
 import os
 
 import numpy
-from osgeo import gdal
 import pygeoprocessing
 import taskgraph
+from osgeo import gdal
 
 logging.basicConfig(
     level=logging.INFO,
@@ -73,9 +73,7 @@ def calculate_dg(clay_path, sand_path, silt_path, dg_output_path):
 
         return dg
 
-    driver_opts = ('GTIFF', (
-        'TILED=YES', 'BIGTIFF=YES', 'COMPRESS=LZW', 'BLOCKXSIZE=256',
-        'BLOCKYSIZE=256', 'PREDICTOR=3', 'NUM_THREADS=4'))
+    driver_opts = ('COG', ('BIGTIFF=YES', 'NUM_THREADS=4'))
     raster_path_band = [(path, 1) for path in raster_paths]
     pygeoprocessing.geoprocessing.raster_calculator(
         raster_path_band, _calculate_dg, dg_output_path,
@@ -107,9 +105,7 @@ def calculate_renard_k_factor(dg_path, k_factor_output_path):
         k_factor[valid_mask] = k_factor[valid_mask] * 0.1317
         return k_factor
 
-    driver_opts = ('GTIFF', (
-        'TILED=YES', 'BIGTIFF=YES', 'COMPRESS=LZW', 'BLOCKXSIZE=256',
-        'BLOCKYSIZE=256', 'PREDICTOR=3', 'NUM_THREADS=4'))
+    driver_opts = ('COG', ('BIGTIFF=YES', 'NUM_THREADS=4'))
     pygeoprocessing.geoprocessing.raster_calculator(
         [(dg_path, 1)], k_factor, k_factor_output_path,
         gdal.GDT_Float32, float(NODATA_FLOAT32),
@@ -202,9 +198,8 @@ def calculate_williams_k_factor(
         return k_factor_result
 
     raster_path_band = [(path, 1) for path in raster_paths]
-    driver_opts = ('GTIFF', (
-        'TILED=YES', 'BIGTIFF=YES', 'COMPRESS=LZW', 'BLOCKXSIZE=256',
-        'BLOCKYSIZE=256', 'PREDICTOR=3', 'NUM_THREADS=4'))
+
+    driver_opts = ('COG', ('BIGTIFF=YES', 'NUM_THREADS=4'))
     pygeoprocessing.geoprocessing.raster_calculator(
         raster_path_band, _calculate_k_williams, target_path,
         gdal.GDT_Float32, float(NODATA_FLOAT32),
