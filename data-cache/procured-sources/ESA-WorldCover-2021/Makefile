@@ -23,7 +23,6 @@ $(ESA_PATHS):
 	python3 $(ROOT_DIR)/esa_tif_paths.py $(TILESDIR) > $(ROOT_DIR)/$(ESA_PATHS)
 
 esa.vrt: $(ESA_PATHS)
-#gdalbuildvrt $@ /vsizip/tiles/*.zip/*.tif
 	gdalbuildvrt $@ -input_file_list $(ROOT_DIR)/$(ESA_PATHS)
 
 esa2021.tif: esa.vrt
