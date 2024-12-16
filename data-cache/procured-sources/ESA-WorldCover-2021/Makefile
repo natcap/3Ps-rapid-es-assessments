@@ -1,14 +1,7 @@
 SHELL := bash
-ASTER_URLS_FILE := aster30m_urls.txt
-ASTER_PATHS := aster_tif_paths.txt
-ASTER_URLS_SOURCE := https://www.opentopodata.org/datasets/$(ASTER_URLS_FILE)
+ESA_URLS_FILE := esa2021_urls.txt
+ESA_PATHS := esa_tif_paths.txt
 N_WORKERS := 8
-GTIFF_CREATE_OPTS := -co "COMPRESS=LZW" \
-					 -co "PREDICTOR=2" \
-					 -co "TILED=YES" \
-					 -co "SPARSE_OK=False" \
-					 -co "BIGTIFF=YES" \
-					 -co "NUM_THREADS=$(N_WORKERS)"
 SETCACHE := GDAL_CACHEMAX=2048
 
 # https://stackoverflow.com/a/2547973
@@ -16,37 +9,22 @@ ROOT_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 TILESDIR := tiles
 
 
-$(ASTER_URLS_FILE):
-	curl $(ASTER_URLS_SOURCE) > $(ASTER_URLS_FILE)
-
 $(TILESDIR):
 	mkdir $@
 
 # Sometimes it's useful to use a single HTTP session for this
 .PHONY: download-batch
 download-batch: $(TILESDIR)
-	cat $(ROOT_DIR)/$(ASTER_URLS_FILE) | parallel -j$(N_WORKERS) "wget \
+	cat $(ROOT_DIR)/$(ESA_URLS_FILE) | parallel -j$(N_WORKERS) "wget \
 		--no-verbose --no-clobber --tries=20 --random-wait --retry-connrefused \
-		--user=\"$(NASA_EARTHDATA_USERNAME)\" --password=\"$(NASA_EARTHDATA_PASSWORD)\" \
 		--directory-prefix=$(TILESDIR) {}"
 
-$(ASTER_PATHS):
-	python3 $(ROOT_DIR)/aster_tif_paths.py $(TILESDIR) > $(ASTER_PATHS)
+$(ESA_PATHS):
+	python3 $(ROOT_DIR)/esa_tif_paths.py $(TILESDIR) > $(ROOT_DIR)/$(ESA_PATHS)
 
-aster.vrt:
-	gdalbuildvrt $@ -input_file_list $(ROOT_DIR)/$(ASTER_PATHS)
+esa.vrt: $(ESA_PATHS)
+#gdalbuildvrt $@ /vsizip/tiles/*.zip/*.tif
+	gdalbuildvrt $@ -input_file_list $(ROOT_DIR)/$(ESA_PATHS)
 
-aster-v3-1s.tif: aster.vrt
-	$(SETCACHE) gdal_translate -ot "Int16" $(GTIFF_CREATE_OPTS) $< $@
-
-aster-v3-1s.tif.ovr: aster-v3-1s.tif
-	$(SETCACHE) GDAL_NUM_THREADS=$(N_WORKERS) gdaladdo \
-				  --config COMPRESS_OVERVIEW LZW \
-				  --config PREDICTOR_OVERVIEW 2 \
-				  -r near -ro aster-v3-1s.tif
-
-aster-v3-1s-colorized.tif: aster-v3-1s.tif
-	$(SETCACHE) gdaldem color-relief -alpha $(GTIFF_CREATE_OPTS) aster-v3-1s.tif $(ROOT_DIR)/colorprofile.txt $@
-
-xyztiles: aster-v3-1s-colorized.tif
-	$(SETCACHE) gdal2tiles.py --xyz -r near --zoom=1-8 --processes=$(N_WORKERS) aster-v3-1s-colorized.tif $@
+esa2021.tif: esa.vrt
+	$(SETCACHE) gdal_translate -of cog -strict -co "BIGTIFF=YES" -co "NUM_THREADS=$N_WORKERS" $< $@

@@ -22,7 +22,7 @@ def extract_paths(tiles_dir):
     for zip in glob.glob(os.path.join(tiles_dir, "*.zip"), recursive=True):
         with zipfile.ZipFile(zip, 'r') as zipObj:
             for name in zipObj.infolist():
-                if name.filename.endswith("_dem.tif"):
+                if name.filename.endswith(".tif"):
                     file = str(name.filename)
                     final_path = f'/vsizip/{zip}/{file}'
                     tiffiles.append(final_path)
