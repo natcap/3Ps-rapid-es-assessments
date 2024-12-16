@@ -3,11 +3,7 @@ ASTER_URLS_FILE := aster30m_urls.txt
 ASTER_PATHS := aster_tif_paths.txt
 ASTER_URLS_SOURCE := https://www.opentopodata.org/datasets/$(ASTER_URLS_FILE)
 N_WORKERS := 8
-GTIFF_CREATE_OPTS := -co "COMPRESS=LZW" \
-					 -co "PREDICTOR=2" \
-					 -co "TILED=YES" \
-					 -co "SPARSE_OK=False" \
-					 -co "BIGTIFF=YES" \
+GTIFF_CREATE_OPTS := -co "BIGTIFF=YES" \
 					 -co "NUM_THREADS=$(N_WORKERS)"
 SETCACHE := GDAL_CACHEMAX=2048
 
@@ -37,7 +33,7 @@ aster.vrt:
 	gdalbuildvrt $@ -input_file_list $(ROOT_DIR)/$(ASTER_PATHS)
 
 aster-v3-1s.tif: aster.vrt
-	$(SETCACHE) gdal_translate -ot "Int16" $(GTIFF_CREATE_OPTS) $< $@
+	$(SETCACHE) gdal_translate -ot "Int16" -of COG $(GTIFF_CREATE_OPTS) $< $@
 
 aster-v3-1s.tif.ovr: aster-v3-1s.tif
 	$(SETCACHE) GDAL_NUM_THREADS=$(N_WORKERS) gdaladdo \

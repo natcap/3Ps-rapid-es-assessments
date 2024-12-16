@@ -1,4 +1,5 @@
 import argparse
+import faulthandler
 import logging
 import os
 
@@ -6,11 +7,12 @@ import numpy
 import pygeoprocessing
 from osgeo import gdal
 
+faulthandler.enable()
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger(os.path.basename(__file__))
-gdal.SetCacheMax(2**32)
+gdal.SetCacheMax(2048)
 NODATA_FLOAT32 = numpy.finfo(numpy.float32).min
-ISRIC_2017_AWCH1_RASTERS = {
+ISRIC_2017_WWP_M_RASTERS = {
     '0cm':   'WWP_M_sl1_250m_ll.tif',
     '5cm':   'WWP_M_sl2_250m_ll.tif',
     '15cm':  'WWP_M_sl3_250m_ll.tif',
@@ -29,7 +31,8 @@ def calculate_awc(
         soil_depth_60cm_path,
         soil_depth_100cm_path,
         soil_depth_200cm_path,
-        target_awc_path):
+        target_awc_path,
+        n_workers=1):
     rasters = [
         soil_depth_0cm_path,
         soil_depth_5cm_path,
@@ -44,8 +47,12 @@ def calculate_awc(
         pygeoprocessing.get_raster_info(path)['nodata'][0] for path in rasters]
     assert nodatas == [soils_nodata]*len(nodatas)
 
-    def _calculate(soil_depth_0cm, soil_depth_5cm, soil_depth_15cm,
-                   soil_depth_30cm, soil_depth_60cm, soil_depth_100cm,
+    def _calculate(soil_depth_0cm,
+                   soil_depth_5cm,
+                   soil_depth_15cm,
+                   soil_depth_30cm,
+                   soil_depth_60cm,
+                   soil_depth_100cm,
                    soil_depth_200cm):
         awc = numpy.full(soil_depth_0cm.shape, NODATA_FLOAT32,
                          dtype=numpy.float32)
@@ -55,6 +62,20 @@ def calculate_awc(
                       soil_depth_200cm]:
             valid &= (array != soils_nodata)
 
+        # If none of the pixel stacks are valid, skip it.
+        if numpy.sum(valid) == 0:
+            return awc
+
+        # We can avoid overflowing pixel values by casting all arrays to
+        # float64 upfront.
+        soil_depth_0cm = soil_depth_0cm.astype(numpy.float64)
+        soil_depth_5cm = soil_depth_5cm.astype(numpy.float64)
+        soil_depth_15cm = soil_depth_15cm.astype(numpy.float64)
+        soil_depth_30cm = soil_depth_30cm.astype(numpy.float64)
+        soil_depth_60cm = soil_depth_60cm.astype(numpy.float64)
+        soil_depth_100cm = soil_depth_100cm.astype(numpy.float64)
+        soil_depth_200cm = soil_depth_200cm.astype(numpy.float64)
+
         awc[valid] = ((1/200) * (1/2) * (
             ((5 - 0) * (soil_depth_0cm[valid] + soil_depth_5cm[valid])) +
             ((15 - 5) * (soil_depth_5cm[valid] + soil_depth_15cm[valid])) +
@@ -62,21 +83,28 @@ def calculate_awc(
             ((60 - 30) * (soil_depth_30cm[valid] + soil_depth_60cm[valid])) +
             ((100 - 60) * (soil_depth_60cm[valid] + soil_depth_100cm[valid])) +
             ((200 - 100) * (soil_depth_100cm[valid] + soil_depth_200cm[valid]))
-        ))
+        )) / 100
 
         # Make sure the range is reasonable while we're calculating it.
-        assert awc[valid].min() >= 0, "Calculated AWC must be >= 0"
-        assert awc[valid].max() <= 1, "Calculated AWC must be <= 1"
+        if valid.sum() > 0:
+            minimum = awc[valid].min()
+            maximum = awc[valid].max()
+            assert minimum >= 0, f"Calculated AWC must be >= 0, not {minimum}"
+            assert maximum <= 1, f"Calculated AWC must be <= 1, not {maximum}"
         return awc
 
-    driver_opts = ('GTIFF', (
-        'TILED=YES', 'BIGTIFF=YES', 'COMPRESS=LZW',
-        'BLOCKXSIZE=256', 'BLOCKYSIZE=256', 'PREDICTOR=1', 'NUM_THREADS=4'))
+    driver_opts = ('COG', ('BIGTIFF=YES', 'NUM_THREADS=4'))
     raster_paths = [(path, 1) for path in rasters]
-    pygeoprocessing.geoprocessing.raster_calculator(
-        raster_paths, _calculate, target_awc_path,
-        gdal.GDT_Float32, float(NODATA_FLOAT32),
-        raster_driver_creation_tuple=driver_opts)
+    if n_workers == 1:
+        pygeoprocessing.geoprocessing.raster_calculator(
+            raster_paths, _calculate, target_awc_path,
+            gdal.GDT_Float32, float(NODATA_FLOAT32),
+            raster_driver_creation_tuple=driver_opts)
+    else:
+        pygeoprocessing.multiprocessing.raster_calculator(
+            raster_paths, _calculate, target_awc_path, gdal.GDT_Float32,
+            float(NODATA_FLOAT32), n_workers=n_workers,
+            raster_Driver_creation_tuple=driver_opts)
 
     pygeoprocessing.geoprocessing.build_overviews(
         target_awc_path, internal=False, resample_method='near',
@@ -86,6 +114,7 @@ def calculate_awc(
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--cache-dir', default='downloads')
+    parser.add_argument('--n_workers', default=1)
     parser.add_argument('target_awc')
 
     parsed_args = parser.parse_args()
@@ -98,7 +127,7 @@ def main():
 
     files_not_found = []
     local_soil_rasters = []
-    for soil_depth, soil_rastername in ISRIC_2017_AWCH1_RASTERS.items():
+    for soil_depth, soil_rastername in ISRIC_2017_WWP_M_RASTERS.items():
         local_file = os.path.join(cache_dir, soil_rastername)
         if not os.path.exists(local_file):
             LOGGER.warning(
@@ -116,7 +145,8 @@ def main():
             f"Missing files:\n{missing_files}")
 
     LOGGER.info(f"Calculating AWC to {parsed_args.target_awc}")
-    calculate_awc(*local_soil_rasters, parsed_args.target_awc)
+    calculate_awc(*local_soil_rasters, parsed_args.target_awc,
+                  n_workers=parsed_args.n_workers)
 
     LOGGER.info(f"AWC complete; written to {parsed_args.target_awc}")
 
