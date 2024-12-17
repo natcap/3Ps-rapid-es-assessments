@@ -23,7 +23,7 @@ $(ESA_PATHS):
 	python3 $(ROOT_DIR)/esa_tif_paths.py $(TILESDIR) > $(ROOT_DIR)/$(ESA_PATHS)
 
 esa.vrt: $(ESA_PATHS)
-	gdalbuildvrt $@ -input_file_list $(ROOT_DIR)/$(ESA_PATHS)
+	gdalbuildvrt $@ -b 1 -input_file_list $(ROOT_DIR)/$(ESA_PATHS)
 
 esa2021.tif: esa.vrt
-	$(SETCACHE) gdal_translate -of cog -strict -co "BIGTIFF=YES" -co "NUM_THREADS=$N_WORKERS" $< $@
+	$(SETCACHE) gdal_translate -of cog -strict -co "BIGTIFF=YES" -co "NUM_THREADS=$(N_WORKERS)" $< $@
