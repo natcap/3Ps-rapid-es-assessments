@@ -8,6 +8,10 @@ SETCACHE := GDAL_CACHEMAX=2048
 ROOT_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 TILESDIR := tiles
 
+ifeq (, $(shell which cogger))
+	$(error "cogger is not available. Please install it from https://github.com/airbusgeo/cogger")
+endif
+
 
 $(TILESDIR):
 	mkdir $@
@@ -26,4 +30,6 @@ esa.vrt: $(ESA_PATHS)
 	gdalbuildvrt $@ -b 1 -input_file_list $(ROOT_DIR)/$(ESA_PATHS)
 
 esa2021.tif: esa.vrt
-	$(SETCACHE) gdal_translate -of cog -strict -co "BIGTIFF=YES" -co "NUM_THREADS=$(N_WORKERS)" $< $@
+	$(SETCACHE) gdal_translate -of GTiff -strict -co "BIGTIFF=YES" -co "TILED=YES" -co "COMPRESS=LZW" -co "NUM_THREADS=$(N_WORKERS)" $< $@
+	$(SETCACHE) gdaladdo $@
+	cogger $@

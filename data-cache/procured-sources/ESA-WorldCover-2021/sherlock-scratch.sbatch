@@ -1,11 +1,11 @@
 #!/bin/bash
 #
-#SBATCH --time=10:00:00
+#SBATCH --time=24:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
 #SBATCH --mem-per-cpu=4G
 #SBATCH --mail-type=ALL
-#SBATCH --partition=hns,normal
+#SBATCH --partition=hns,normal,serc
 #SBATCH --job-name="ESA-processing"
 
 function print_now {
