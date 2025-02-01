@@ -1,5 +1,5 @@
 SHELL := bash
-GEOTIFF := $(OAK/global-dataset-cache/Public/landscan-pop/landscan-2023)
+GEOTIFF := landscan-global-2023-assets/landscan-global-2023.tif
 N_WORKERS := 8
 SETCACHE := GDAL_CACHEMAX=2048
 
@@ -14,6 +14,6 @@ endif
 # data was unzipped and added to oak (global-dataset-cache/Public/landscan-pop)
 
 landscan_2023_cog.tif:
-	$(SETCACHE) gdal_translate -of GTiff -strict -co "BIGTIFF=YES" -co "TILED=YES" -co "COMPRESS=LZW" -co "NUM_THREADS=$(N_WORKERS)" $(GEOTIFF) $@
+	$(SETCACHE) gdal_translate -of GTiff -strict -co "BIGTIFF=YES" -co "TILED=YES" -co "COMPRESS=LZW" -co "NUM_THREADS=$(N_WORKERS)" $</$(GEOTIFF) $@
 	$(SETCACHE) gdaladdo $@
 	cogger $@
