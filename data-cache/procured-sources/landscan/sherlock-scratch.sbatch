@@ -21,11 +21,12 @@ mkdir -p $TARGET_OAK_DIR || echo "Directory already exists: $TARGET_OAK_DIR"
 
 VALIDATION=/share/software/user/open/py-gdal-utils/3.4.1_py39/lib/python3.9/site-packages/osgeo_utils/samples/validate_cloud_optimized_geotiff.py
 
-# convert geotiff to COG and create all overview
-GDAL_CACHEMAX=2048 gdal_translate -of GTiff -strict -co "BIGTIFF=YES" -co "TILED=YES" -co "COMPRESS=LZW" -co "NUM_THREADS=8" $TARGET_OAK_DIR/landscan-global-2023-assets/landscan-global-2023.tif $TARGET_OAK_DIR/landscan_2023_cog.tif
-GDAL_CACHEMAX=2048 gdaladdo $TARGET_OAK_DIR/landscan_2023_cog.tif
-cogger $TARGET_OAK_DIR/landscan_2023_cog.tif
-    
+# the landscan data is already in COG format, we just need to make sure it has all the correct overview, etc
+gdalinfo -stats $TARGET_OAK_DIR/landscan-global-2023-assets/landscan-global-2023.tif # this is done to ensure the COG has the same band scale 
+#GDAL_CACHEMAX=2048 gdal_translate -of GTiff -strict -co "BIGTIFF=YES" -co "TILED=YES" -co "COMPRESS=LZW" -co "NUM_THREADS=8" $TARGET_OAK_DIR/landscan-global-2023-assets/landscan-global-2023.tif $TARGET_OAK_DIR/landscan_2023_cog.tif
+GDAL_CACHEMAX=2048 gdaladdo $TARGET_OAK_DIR/landscan-global-2023-assets/landscan-global-2023.tif
+cogger -output $TARGET_OAK_DIR/landscan_2023_cog.tif $TARGET_OAK_DIR/landscan-global-2023-assets/landscan-global-2023.tif
+
 #validate COG
 GDAL_CACHEMAX=2048 python3 $VALIDATION $TARGET_OAK_DIR/landscan_2023_cog.tif >> $TARGET_OAK_DIR/validation_check.txt
 
