@@ -1,35 +1,22 @@
 SHELL := bash
-ESA_URLS_FILE := esa2021_urls.txt
-ESA_PATHS := esa_tif_paths.txt
+GEBCO_PATH := /oak/stanford/groups/gdaily/global-dataset-cache/Public/GEBCO/raw
 N_WORKERS := 8
 SETCACHE := GDAL_CACHEMAX=2048
 
 # https://stackoverflow.com/a/2547973
 ROOT_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
-TILESDIR := tiles
+
 
 ifeq (, $(shell which cogger))
 	$(error "cogger is not available. Please install it from https://github.com/airbusgeo/cogger")
 endif
 
+gebco_2024.vrt:
+	gdalbuildvrt $@ $(GEBCO_PATH)/*.tif
 
-$(TILESDIR):
-	mkdir $@
-
-# Sometimes it's useful to use a single HTTP session for this
-.PHONY: download-batch
-download-batch: $(TILESDIR)
-	cat $(ROOT_DIR)/$(ESA_URLS_FILE) | parallel -j$(N_WORKERS) "wget \
-		--no-verbose --no-clobber --tries=20 --random-wait --retry-connrefused \
-		--directory-prefix=$(TILESDIR) {}"
-
-$(ESA_PATHS):
-	python3 $(ROOT_DIR)/esa_tif_paths.py $(TILESDIR) > $(ROOT_DIR)/$(ESA_PATHS)
-
-esa.vrt: $(ESA_PATHS)
-	gdalbuildvrt $@ -b 1 -input_file_list $(ROOT_DIR)/$(ESA_PATHS)
-
-esa2021.tif: esa.vrt
-	$(SETCACHE) gdal_translate -of GTiff -strict -co "BIGTIFF=YES" -co "TILED=YES" -co "COMPRESS=LZW" -co "NUM_THREADS=$(N_WORKERS)" $< $@
-	$(SETCACHE) gdaladdo $@
+# follows general instructions from: https://geoexamples.com/other/2019-02-08-cog-tutorial/
+gebco_bathymetry_2024_global.tif: gebco_2024.vrt
+	$(SETCACHE) gdal_translate -of GTiff -co "TILED=YES" $< gebco_bathymetry_2024_stitch.tif
+	$(SETCACHE) gdaladdo gebco_bathymetry_2024_stitch.tif
+	$(SETCACHE) gdal_translate -of GTiff -strict -co COPY_SRC_OVERVIEWS=YES -co "BIGTIFF=YES" -co "TILED=YES" -co "COMPRESS=LZW" -co "NUM_THREADS=$(N_WORKERS)" gebco_bathymetry_2024_stitch.tif $@
 	cogger $@
