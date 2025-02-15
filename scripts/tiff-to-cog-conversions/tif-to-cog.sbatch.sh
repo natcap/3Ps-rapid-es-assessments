@@ -29,8 +29,10 @@ for t in $(cat tif_paths.txt);
             echo "$j Already Exists"
         else
             GDAL_CACHEMAX=2048 gdalinfo -stats $t; \
+            GDAL_CACHEMAX=2048 gdaladdo $t; \
             echo "Translating $t"
-		    GDAL_CACHEMAX=2048 gdal_translate ${t} ${j} -of cog -strict -co "BIGTIFF=YES" -co "NUM_THREADS=$N_WORKERS"; \
+		    GDAL_CACHEMAX=2048 gdal_translate ${t} ${j} -of GTiff -strict -co COPY_SRC_OVERVIEWS=YES -co "BIGTIFF=YES" -co "TILED=YES" -co "COMPRESS=LZW" -co "NUM_THREADS=$N_WORKERS"; \
+            cogger ${j}
         fi
         echo "Checking validity of $j"
         GDAL_CACHEMAX=2048 python3 $VALIDATION $j >> $WORKDIR/validation_check.txt; \
