@@ -31,11 +31,10 @@ VALIDATION=/share/software/user/open/py-gdal-utils/3.4.1_py39/lib/python3.9/site
 # taking examples from: https://geoexamples.com/other/2019-02-08-cog-tutorial/
 $run_in_container gdal_translate -co BIGTIFF=YES -co COMPRESS=LZW -co TILED=YES "$TARGET_OAK_DIR/landscan-global-2023-assets/landscan-global-2023.tif" "$TARGET_OAK_DIR/landscan_2023_new.tif"
 $run_in_container gdaladdo "$TARGET_OAK_DIR/landscan_2023_new.tif"
-cogger "$TARGET_OAK_DIR/landscan_2023_new.tif"
-cp "$TARGET_OAK_DIR/landscan_2023_new.tif" "$TARGET_OAK_DIR/landscan_2023.tif"
+cogger -output "$TARGET_OAK_DIR/landscan_2023.tif" "$TARGET_OAK_DIR/landscan_2023_new.tif"
 
-#validate COG
-python3 "$VALIDATION" "$TARGET_OAK_DIR/landscan_2023.tif" >> "$TARGET_OAK_DIR/validation_check.txt"
+# validate COG, writing output to both stdout and a file.
+python3 "$VALIDATION" "$TARGET_OAK_DIR/landscan_2023.tif" | tee -a "$TARGET_OAK_DIR/validation_check.txt"
 
 gdalinfo "$TARGET_OAK_DIR/landscan_2023.tif"
 
