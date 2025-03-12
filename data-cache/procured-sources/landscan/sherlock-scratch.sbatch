@@ -14,7 +14,7 @@ function print_now {
     echo "The time right now is $(date)"
 }
 
-run_in_container="singularity run --env GDAL_CACHEMAX=2048 docker://ghcr.io/natcap/devstack@sha256:c011d3a6aea3f9602b986a5a2ae046e8629f098af94494dc3a3ee64649b019bb"
+run_in_container="singularity run --env GDAL_CACHEMAX=2048 docker://ghcr.io/natcap/devstack@sha256:4f78785cfd765ad5dec1e8b81749d5fc40b55154ed53da72a3bc550139758dd2"
 
 module load physics gdal/3.5.2
 module load python/3.9.0
