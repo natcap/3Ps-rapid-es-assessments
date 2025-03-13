@@ -3,6 +3,7 @@ SHELL := bash
 MODIS_PATHS := MCD12Q1.061-files.txt
 NCF_PATHS := MCD12Q1.061-files-subset.txt
 MCD_PATH := https://e4ftl01.cr.usgs.gov/MOTA/MCD12Q1.061/2023.01.01/
+FILETYPES := LC_Type1 LC_Type2
 N_WORKERS := 8
 GTIFF_CREATE_OPTS := -co "BIGTIFF=YES" \
 					 -co "NUM_THREADS=$(N_WORKERS)"
@@ -30,3 +31,4 @@ download-batch: $(NC4DIR)
 		--no-verbose --no-clobber --tries=20 --random-wait --retry-connrefused \
 		--http-user=\"$(NASA_EARTHDATA_USERNAME)\" --http-password=\"$(NASA_EARTHDATA_PASSWORD)\" \
 		--directory-prefix=$(NC4DIR) {}"
+

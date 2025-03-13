@@ -13,8 +13,6 @@ import geopandas
 import glob
 import pandas as pd
 
-#test path
-path="Z:/global-dataset-cache/Global_ExternalSources/Public/NOAA_shorelines/raw_downloads"
 
 def merge_shapefiles(path, out_path):
     """Write a merged shapefile from a list of shapefiles.
@@ -30,13 +28,16 @@ def merge_shapefiles(path, out_path):
     shp_list = []
     for shp in glob.glob(os.path.join(path, "*.shp")):
         shp_list.append(shp)
-    print(shp_list)
-    merged=[]
+    merged=geopandas.GeoDataFrame()
     for l in shp_list:
+        print(l)
         s = geopandas.read_file(l)
-        s.set_crs('4326')
-        s.sindex()
+        s.to_crs('4326')
         merged = pd.concat([merged,s])
+    merged.sindex
     out_path = out_path + '/' + 'merged.shp'
     merged.to_file(out_path)
 
+
+if __name__ == '__main__':
+    merge_shapefiles(sys.argv[1], sys.argv[2])
