@@ -15,7 +15,7 @@ module load physics gdal/3.5.2
 module load py-gdal-utils
 module load gcc/14.2.0
 
-cd /oak/stanford/groups/gdaily/natcap-data-catalog-cache/footprint-impact-tool-data/natural_capital_footprint_asset_sample_data
+cd /oak/stanford/groups/gdaily/global-dataset-cache/Global_ExternalSources/Public/NOAA_shorelines/
 
 GEOJSON_DIR=./geojsons
 MBTILES_DIR=./mbtiles
@@ -24,7 +24,7 @@ mkdir -p $GEOJSON_DIR
 mkdir -p $MBTILES_DIR
 
 # TODO gpkg too?
-for i in **/*.shp; do
+for i in *.shp; do
 echo $i
   [ -f "$i" ] && echo ${i%.*}
 

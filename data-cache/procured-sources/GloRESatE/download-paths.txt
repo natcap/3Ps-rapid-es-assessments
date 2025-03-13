@@ -1,0 +1,8 @@
+https://zenodo.org/records/11078865/files/CMORPH.zip?download=1
+https://zenodo.org/records/11078865/files/ERA5Land.zip?download=1
+https://zenodo.org/records/11078865/files/EstimatedMean.zip?download=1
+https://zenodo.org/records/11078865/files/GloRESatE.zip?download=1
+https://zenodo.org/records/11078865/files/IMERGFinalRun.zip?download=1
+https://zenodo.org/records/11078865/files/Preview.png?download=1
+https://zenodo.org/records/11078865/files/Rainfall%20Erosivity%20Data.csv?download=1
+https://zenodo.org/records/11078865/files/readme.txt?download=1

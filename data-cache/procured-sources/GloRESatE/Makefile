@@ -1,6 +1,6 @@
 SHELL := bash
-# script to get file below found here: https://github.com/phargogh/2025-02-18-download-modis-land-cover-types/tree/main
-DOWNLOAD_PATH=https://zenodo.org/api/records/11078865/files-archive
+# the urls on the list below were taken manually from: https://zenodo.org/records/11078865
+DOWNLOAD_PATHS=download-paths.txt
 OUT_PATH=$(OAK)/global-dataset-cache/Global_ExternalSources/Public/GLORESATE-erosivity
 N_WORKERS := 8
 GTIFF_CREATE_OPTS := -co "BIGTIFF=YES" \
@@ -18,7 +18,7 @@ $(RAW_DOWNLOADS):
 # Sometimes it's useful to use a single HTTP session for this
 .PHONY: download-batch
 download-batch:
-	wget $(DOWNLOAD_PATH) \
+	cat $(ROOT_DIR)/$(DOWNLOAD_PATHS) | parallel -j$(N_WORKERS) "wget \
 		--no-verbose --no-clobber --tries=20 --random-wait --retry-connrefused \
-		--directory-prefix=$(OUT_PATH)/$(RAW_DOWNLOADS)
+		--directory-prefix=$(OUT_PATH)/$(RAW_DOWNLOADS) {}"
 
