@@ -34,6 +34,7 @@ def merge_shapefiles(path, out_path):
         s = geopandas.read_file(l)
         s.to_crs('4326')
         merged = pd.concat([merged,s])
+    merged.to_crs('EPSG:4326')
     merged.sindex
     out_path = out_path + '/' + 'merged.shp'
     merged.to_file(out_path)

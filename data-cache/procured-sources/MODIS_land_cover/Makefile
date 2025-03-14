@@ -3,7 +3,8 @@ SHELL := bash
 MODIS_PATHS := MCD12Q1.061-files.txt
 NCF_PATHS := MCD12Q1.061-files-subset.txt
 MCD_PATH := https://e4ftl01.cr.usgs.gov/MOTA/MCD12Q1.061/2023.01.01/
-FILETYPES := LC_Type1 LC_Type2
+DOWNLOADED := downloaded-paths.txt
+FILETYPE := LC_Type1
 N_WORKERS := 8
 GTIFF_CREATE_OPTS := -co "BIGTIFF=YES" \
 					 -co "NUM_THREADS=$(N_WORKERS)"
@@ -32,3 +33,6 @@ download-batch: $(NC4DIR)
 		--http-user=\"$(NASA_EARTHDATA_USERNAME)\" --http-password=\"$(NASA_EARTHDATA_PASSWORD)\" \
 		--directory-prefix=$(NC4DIR) {}"
 
+build-vrt: $(NC4DIR)
+	python3 $(ROOT_DIR)/nc4_paths.py $(NC4DIR) $(FILETYPE) > $(DOWNLOADED)
+#$(SETCACHE) gdalbuildvrt vrt-$(FILETYPE).vrt -input_file_list $(ROOT_DIR)/$(DOWNLOADED)
