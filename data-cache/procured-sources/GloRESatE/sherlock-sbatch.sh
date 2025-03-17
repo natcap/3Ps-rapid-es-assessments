@@ -27,3 +27,5 @@ TARGET_OAK_DIR="$OAK/global-dataset-cache/Global_ExternalSources/Public/GLORESAT
 scratch_make="make N_WORKERS=$SLURM_CPUS_PER_TASK -C $TARGET_OAK_DIR -f $(pwd)/Makefile"
 
 $scratch_make download-batch
+
+#files are then converted to cogs in scripts/tif-to-cog-conversions

@@ -24,13 +24,13 @@ def compare_scale(cog, tif):
     if cog_band.GetNoDataValue() == tif_band.GetNoDataValue():
         print("OK")
     else: 
-        print("NoDATA doesn't match for:" + {cog})
+        print("NoDATA doesn't match for:" + cog)
         print(cog_band.GetNoDataValue(), tif_band.GetNoDataValue())
 
     if cog_band.GetStatistics(0, 1) == tif_band.GetStatistics(0, 1):
         print("OK")
     else: 
-        print("Scale doesn't match for:" + {cog})
+        print("Scale doesn't match for:" + cog)
         print(cog_band.GetStatistics(0, 1), tif_band.GetStatistics(0, 1))
         
 if __name__ == '__main__':

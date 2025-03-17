@@ -13,7 +13,7 @@ module load python/3.9.0
 module load py-gdal-utils
 
 # update this path to reflect folders to search through to locate .tif files
-WORKDIR=/oak/stanford/groups/gdaily/global-dataset-cache/Global_ExternalSources/Public/NLCD/raw_downloads
+WORKDIR=/oak/stanford/groups/gdaily/global-dataset-cache/Global_ExternalSources/Public/GLORESATE-erosivity/COGs
 N_WORKERS=8
 VALIDATION=/share/software/user/open/py-gdal-utils/3.4.1_py39/lib/python3.9/site-packages/osgeo_utils/samples/validate_cloud_optimized_geotiff.py
 
@@ -31,6 +31,9 @@ for t in $(cat tif_paths.txt);
         echo $j; \
         if [ -f $j ]; then 
             echo "$j Already Exists"
+            rm ${t}".aux.xml" ; \
+            f=`echo ${j%_cog.*}`; \
+            f=$f".tif"
         else
             GDAL_CACHEMAX=2048 gdal_translate -a_srs EPSG:4326 -co BIGTIFF=YES -co COMPRESS=LZW -co TILED=YES $t $i; \
             GDAL_CACHEMAX=2048 gdaladdo $i; \
@@ -38,6 +41,8 @@ for t in $(cat tif_paths.txt);
             cogger -output ${j} ${i};  \
             echo "Checking validity of $j"
             GDAL_CACHEMAX=2048 python3 $VALIDATION $j >> $WORKDIR/validation_check.txt; \
-		    python3 scale-check.py $j $t >> $WORKDIR/scale-check.txt
+		    python3 scale-check.py $j $t >> $WORKDIR/scale-check.txt ; \
+            rm ${t}; \ #removes translated version
+            rm ${i} #removed original if you want to rename
         fi
 	done
