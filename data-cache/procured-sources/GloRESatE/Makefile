@@ -22,3 +22,5 @@ download-batch:
 		--no-verbose --no-clobber --tries=20 --random-wait --retry-connrefused \
 		--directory-prefix=$(OUT_PATH)/$(RAW_DOWNLOADS)
 
+split-bands:
+	$(SETCACHE) gdal_translate -b 13 

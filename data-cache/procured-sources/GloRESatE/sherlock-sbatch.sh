@@ -27,3 +27,9 @@ TARGET_OAK_DIR="$OAK/global-dataset-cache/Global_ExternalSources/Public/GLORESAT
 scratch_make="make N_WORKERS=$SLURM_CPUS_PER_TASK -C $TARGET_OAK_DIR -f $(pwd)/Makefile"
 
 $scratch_make download-batch
+
+# after this section, the datasets were converted to COGs in a batch using:
+# https://github.com/natcap/gef-rapid-es-assessments/blob/main/scripts/tiff-to-cog-conversions/tif-to-cog.sbatch.sh
+# the outputs were placed in global-dataset-cache\Global_ExternalSources\Internal_Private\GLORESATE-erosivity\COGs
+
+$scratch_make split-bands
