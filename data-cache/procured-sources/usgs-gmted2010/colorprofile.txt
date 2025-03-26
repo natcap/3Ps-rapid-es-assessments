@@ -1,0 +1,5 @@
+# The different layers available are minimum elevation, maximum elevation,
+# mean elevation, median elevation, standard deviation of elevation, systematic
+# subsample, and breakline emphasis
+-40    0   0   0
+5750 255 255 255

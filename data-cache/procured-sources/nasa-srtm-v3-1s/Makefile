@@ -3,11 +3,7 @@ SRTM_URLS_FILE := srtm30m_urls.txt
 SRTM_URLS_SOURCE := https://www.opentopodata.org/datasets/$(SRTM_URLS_FILE)
 BASE_URL := https://e4ftl01.cr.usgs.gov/MEASURES/SRTMGL1.003/2000.02.11/
 N_WORKERS := 8
-GTIFF_CREATE_OPTS := -co "COMPRESS=LZW" \
-					 -co "PREDICTOR=2" \
-					 -co "TILED=YES" \
-					 -co "SPARSE_OK=False" \
-					 -co "BIGTIFF=YES" \
+GTIFF_CREATE_OPTS := -co "BIGTIFF=YES" \
 					 -co "NUM_THREADS=$(N_WORKERS)"
 SETCACHE := GDAL_CACHEMAX=2048
 
@@ -35,7 +31,7 @@ srtm.vrt:
 	gdalbuildvrt $@ tiles/*.hgt{,.zip}
 
 srtm-v3-1s.tif: srtm.vrt
-	$(SETCACHE) gdal_translate -ot "Int16" $(GTIFF_CREATE_OPTS) srtm.vrt $@
+	$(SETCACHE) gdal_translate -ot "Int16" -of COG $(GTIFF_CREATE_OPTS) srtm.vrt $@
 
 srtm-v3-1s.tif.ovr: srtm-v3-1s.tif
 	$(SETCACHE) GDAL_NUM_THREADS=$(N_WORKERS) gdaladdo \

@@ -1,1 +1,4 @@
-data-cache/procured-sources/usgs-gmted2010/slurm-46726202.out
+**/slurm-*.out
+data-cache/procured-sources/aster-dem-30m/aster_tif_paths.txt
+scripts/**/*.txt
+tif_paths.txt
