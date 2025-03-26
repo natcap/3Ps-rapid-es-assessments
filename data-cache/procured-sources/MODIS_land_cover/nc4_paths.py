@@ -20,7 +20,8 @@ def extract_paths(dir, type):
     dir = os.path.abspath(dir)
     files = []
     for file in glob.glob(os.path.join(dir, "*.nc4"), recursive=True):
-        files.append(file)
+        path = f"file + ':' + type"
+        files.append(path)
     print(*files, sep='\n')
 
 

@@ -12,9 +12,10 @@ import os
 import geopandas
 import glob
 import pandas as pd
+import sys
 
 
-def merge_shapefiles(path, out_path):
+def merge_shapefiles(path, out_path, out_name):
     """Write a merged shapefile from a list of shapefiles.
 
     Args:
@@ -32,12 +33,13 @@ def merge_shapefiles(path, out_path):
     for l in shp_list:
         print(l)
         s = geopandas.read_file(l)
-        s.to_crs('4326')
-        merged = pd.concat([merged,s])
-    merged.sindex
-    out_path = out_path + '/' + 'merged.shp'
-    merged.to_file(out_path)
+        s.sindex
+        c = s.to_crs('EPSG:4326')
+        merged = pd.concat([merged,c])
+    merge_final = merged.to_crs('EPSG:4326')
+    out_path = out_path + '/' +  out_name + '.shp'
+    merge_final.to_file(out_path)
 
 
 if __name__ == '__main__':
-    merge_shapefiles(sys.argv[1], sys.argv[2])
+    merge_shapefiles(sys.argv[1], sys.argv[2], sys.argv[3])

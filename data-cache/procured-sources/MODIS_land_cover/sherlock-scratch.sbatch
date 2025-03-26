@@ -29,7 +29,9 @@ scratch_make="make N_WORKERS=$SLURM_CPUS_PER_TASK -C $SCRATCH_DIR -f $(pwd)/Make
 
 #$scratch_make select-paths
 
-$scratch_make download-batch
+#$scratch_make download-batch
+
+$scratch_make build-vrt
 
 #$scratch_make create-paths
 #
