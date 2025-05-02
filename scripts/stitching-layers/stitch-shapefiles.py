@@ -14,6 +14,9 @@ import glob
 import pandas as pd
 import sys
 
+path="C:\\Users\\epavia\\Downloads\\gla-canopy\\gla-canopy"
+out_path="C:\\Users\\epavia\\Desktop\\natcap\\Urban_Projects\\London_InVEST\\gla-curio-canopy"
+out_name="curio-gla-canopy-2km-25cm-2016"
 
 def merge_shapefiles(path, out_path, out_name):
     """Write a merged shapefile from a list of shapefiles.
@@ -27,12 +30,12 @@ def merge_shapefiles(path, out_path, out_name):
     """
     path = os.path.abspath(path)
     shp_list = []
-    for shp in glob.glob(os.path.join(path, "*.shp")):
+    for shp in glob.glob(os.path.join(path, "*.kml")):
         shp_list.append(shp)
     merged=geopandas.GeoDataFrame()
     for l in shp_list:
         print(l)
-        s = geopandas.read_file(l)
+        s = geopandas.read_file(l, driver='KML')
         s.sindex
         c = s.to_crs('EPSG:4326')
         merged = pd.concat([merged,c])
