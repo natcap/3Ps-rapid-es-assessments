@@ -32,12 +32,14 @@ from osgeo import osr
 
 logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger(os.path.basename(__file__))
-URL_BASE = 'https://storage.googleapis.com/gef-ckan-public-data'
+URL_BASE = 'https://storage.googleapis.com/natcap-data-cache/global'
 
 # Keys are known aliases, values are the path to the layer relative to URL_BASE
 # above.
 KNOWN_DEMS = {
-    'SRTM': f'{URL_BASE}/srtm-v3-1s/srtm-v3-1s.tif',
+    'SRTM': f'{URL_BASE}/nasa-srtm-v3-1s/srtm-v3-1s.tif',
+    'ASTER': f'{URL_BASE}/aster-v3-1s/aster-v3-1s.tif',
+    'NASA_HGT': f'{URL_BASE}/hasa-hgt-v1-1s/hasa-hgt-v1-1s.tif',
 }
 
 WGS84_SRS = osr.SpatialReference()
