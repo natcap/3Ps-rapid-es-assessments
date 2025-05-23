@@ -94,7 +94,7 @@ def main(target_csv, climate_zones_raster, monthly_rain_events_rasters,
 if __name__ == "__main__":
     GDRIVE_DIR = (
         "/Users/jdouglass/Library/CloudStorage/"
-        "GoogleDrive-jadoug06@stanford.edu/Shared drives/GEF_GreenFin/"
+        "GoogleDrive-jadoug06@stanford.edu/Shared drives/GreenFin/"
         "Pilot_Countries/Armenia/GIS_Armenia/1_preprocess")
     #main(
     #    "target.csv", os.path.join(GDRIVE_DIR, "KG_climatezones.tif"),

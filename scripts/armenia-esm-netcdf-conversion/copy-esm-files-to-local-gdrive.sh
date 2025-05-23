@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 # Where GDrive is mounted on James' computer
-GDRIVE_DEFAULT_LOC="/Users/jdouglass/Library/CloudStorage/GoogleDrive-jadoug06@stanford.edu/Shared drives/GEF_GreenFin/Pilot_Countries/Armenia/GIS_Armenia/NatCap_Armenia_DataSharing/climate_projections/GFDL-ESM4 monthly processed data"
+GDRIVE_DEFAULT_LOC="/Users/jdouglass/Library/CloudStorage/GoogleDrive-jadoug06@stanford.edu/Shared drives/GreenFin/Pilot_Countries/Armenia/GIS_Armenia/NatCap_Armenia_DataSharing/climate_projections/GFDL-ESM4 monthly processed data"
 
 GDRIVE_LOC=${1:-$GDRIVE_DEFAULT_LOC}
 
