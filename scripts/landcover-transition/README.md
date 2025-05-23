@@ -47,9 +47,9 @@ To set up a conda environment via the command line:
 ```
 Once the environment is set up download the script by cloning the repository.
 
-`  >> git clone https://github.com/natcap/gef-rapid-es-assessments.git`
+`  >> git clone https://github.com/natcap/3Ps-rapid-es-assessments.git`
 
-The script will live in `gef-rapid-es-assessments/scripts/landcover-transition/lulc-transition.py`
+The script will live in `3Ps-rapid-es-assessments/scripts/landcover-transition/lulc-transition.py`
 
 ### Docker setup (coming soon)
 Docker integration (coming soon)
@@ -57,14 +57,14 @@ Docker integration (coming soon)
 ## Example
 For this example let's assume you are on the command line in the folder
 `user/workspace/`. This example assumes you have the repository cloned in
-`user/workspace/gef-rapid-es-assessments` and another folder
+`user/workspace/3Ps-rapid-es-assessments` and another folder
 `user/workspace/transitions/` with the LULC rasters.
 
 To learn about how to run the script you can use the `--help` flag.
 
 ```bash
->> python gef-rapid-es-assessments/scripts/landcover-transitions/lulc-transition.py --help
-  
+>> python 3Ps-rapid-es-assessments/scripts/landcover-transitions/lulc-transition.py --help
+
 usage: lulc-transition.py [-h] [-f FROM] [-t TO] [-o OUTPUT_DIRECTORY]
 
 Given two landcover rasters creates a transition matrix table and transition
@@ -80,5 +80,5 @@ options:
 
 To run the script and output into `user/workspace/transitions`:
 
-`  >> python gef-rapid-es-assessments/scripts/landcover-transitions/lulc-transition.py -f transitions/LULC-before.tif -t transitions/LULC-after.tif -o transitions`
+`  >> python 3Ps-rapid-es-assessments/scripts/landcover-transitions/lulc-transition.py -f transitions/LULC-before.tif -t transitions/LULC-after.tif -o transitions`
 
