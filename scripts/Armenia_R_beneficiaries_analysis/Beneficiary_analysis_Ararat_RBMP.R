@@ -13,19 +13,19 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path)) # see here: https://
 # Directories
 
   # beneficiary watersheds
-  beneficiaries_folder<-"I:/Shared drives/GEF_GreenFin/Pilot_Countries/Armenia/GIS_Armenia/4_postprocess/Beneficiaries/economic_servicesheds"
+  beneficiaries_folder<-"./data/Inputs/Beneficiaries"
   
   #Ararat RBMP area and river basins
-  RBMP_area_folder<-"I:/Shared drives/GEF_GreenFin/Pilot_Countries/Armenia/GIS_Armenia/NatCap_Armenia_DataSharing/2_input_data/swy/AraratBMA_22062024/aoi_shp"
+  RBMP_area_folder<-"./data/Inputs/aoi_shp"
   
   
   # DEM folder 
-  DEM_folder<-"I:/Shared drives/GEF_GreenFin/Pilot_Countries/Armenia/GIS_Armenia/NatCap_Armenia_DataSharing/2_input_data/swy/Hydrosheds"
+  DEM_folder<-"./data/Inputs/swy/Hydrosheds"
   DEM_file<-"DEM_90m_Armenia_hydrosheds_raw_Rafa_prj_bilinear.tif"
   DEM<-rast(paste(DEM_folder,DEM_file,sep="/"))
   
   # water yield folder
-  BF_folder<-"I:/Shared drives/GEF_GreenFin/Pilot_Countries/Armenia/GIS_Armenia/NatCap_Armenia_DataSharing/3_output_data/SWY/AraratBMA_22062024"
+  BF_folder<-"./data/Inputs/swy/AraratBMA_22062024"
   BF_current_folder<-"SWY_1961_1990"
   BF_2040_folder<-"SWY_2041_2070"
   BF_2070_folder<-"SWY_2071_2100"
@@ -47,14 +47,14 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path)) # see here: https://
   
 
   #output folder
-  Out_folder<-"I:/Shared drives/GEF_GreenFin/Pilot_Countries/Armenia/GIS_Armenia/NatCap_Armenia_DataSharing/4_postprocess/valuation"
+  Out_folder<-"./data/Outputs/valuation"
   
 #### Analysis
   
   # load servicesheds, match attributes and join servicesheds for fish, irrigation, hydropower together.
   
   # load shapefiles
-    bf_ws_ff<-read_sf(paste(beneficiaries_folder,"ff_beneficiearies_servicesheds.shp",sep="/"))
+    bf_ws_ff<-read_sf(paste(beneficiaries_folder,"ff_beneficiaries_servicesheds.shp",sep="/"))
     bf_ws_shp<-read_sf(paste(beneficiaries_folder,"shpp_beneficiaries_servicesheds.shp",sep='/'))
     bf_ws_irri<-read_sf(paste(beneficiaries_folder,"irrigation_beneficiaries_servicesheds.shp",sep="/"))
     
